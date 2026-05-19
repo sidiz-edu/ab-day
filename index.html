@@ -90,10 +90,6 @@ section{min-height:100vh;display:flex;flex-direction:column;justify-content:cent
 
 /* ── 행사 안내 섹션 ── */
 #sec-event{background:radial-gradient(ellipse at 75% 25%,#ffffff 0%,#eef0f6 55%,#c8d4ee 100%);}
-.theme-box{border:1px solid rgba(30,37,64,0.1);border-radius:16px;padding:40px 48px;margin:48px 0 40px;background:#fff;position:relative;overflow:hidden;}
-.theme-box::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(30,37,64,0.03) 0%,transparent 70%);}
-.theme-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.6);margin-bottom:12px;}
-.theme-title{font-size:clamp(22px,3vw,36px);font-weight:800;letter-spacing:-0.5px;color:var(--c5);}
 .pres-list{display:grid;gap:1px;background:rgba(30,37,64,0.07);border:1px solid rgba(30,37,64,0.1);border-radius:12px;overflow:hidden;}
 .pres-item{display:flex;align-items:center;gap:20px;padding:20px 28px;background:#fff;transition:background 0.15s;}
 .pres-item:hover{background:#f8f9fc;}
@@ -288,8 +284,6 @@ body.slide-mode #sec-event .inner{
 body.slide-mode #sec-event .sec-eyebrow{font-size:10px;margin-bottom:6px;}
 body.slide-mode #sec-event .sec-title{font-size:clamp(22px,3vw,36px);margin-bottom:6px;}
 body.slide-mode #sec-event .sec-sub{font-size:13px;margin-bottom:12px;}
-body.slide-mode #sec-event .theme-box{padding:20px 28px;margin:12px 0;}
-body.slide-mode #sec-event .theme-title{font-size:clamp(16px,2vw,26px);}
 body.slide-mode #sec-event .pres-list{flex:1;overflow:hidden;}
 body.slide-mode #sec-event .pres-item{padding:12px 20px;}
 body.slide-mode #sec-event .pres-title{font-size:14px;}
@@ -460,10 +454,6 @@ body.slide-mode #slide-ui{display:block;}
     <div class="sec-eyebrow">행사 안내</div>
     <div class="sec-title" id="event-title">앉방데이 안내</div>
     <div class="sec-sub" id="event-sub"></div>
-    <div class="theme-box" id="event-theme-box" style="display:none;">
-      <div class="theme-label">이달의 테마</div>
-      <div class="theme-title" id="event-theme-title"></div>
-    </div>
     <div id="event-pres-list" class="pres-list">
       <div class="pres-item"><span style="color:var(--w3);font-size:13px;">불러오는 중...</span></div>
     </div>
@@ -805,7 +795,6 @@ body.slide-mode #slide-ui{display:block;}
     <div class="modal-title" id="event-modal-title">행사 추가</div>
     <input type="hidden" id="em-id"/>
     <div class="form-group"><label class="form-label">월 (예: 2025.05)</label><input class="form-input" id="em-month" placeholder="2025.05"/></div>
-    <div class="form-group"><label class="form-label">테마</label><input class="form-input" id="em-theme" placeholder="이달의 테마"/></div>
     <div class="form-group"><label class="form-label">날짜 (예: 5월 30일 (금))</label><input class="form-input" id="em-date" placeholder="5월 30일 (금)"/></div>
     <div class="form-group"><label class="form-label">시간</label><input class="form-input" id="em-time" placeholder="15:00 – 17:30" value="15:00 – 17:30"/></div>
     <div class="form-group"><label class="form-label">장소</label><input class="form-input" id="em-location" placeholder="본사 4층 4C" value="본사 4층 4C"/></div>
@@ -1109,7 +1098,6 @@ async function renderHome(){
   var e = cache.events[0];
   if(!e) return;
   var parts = e.month.split('.');
-  if(e.theme) document.getElementById('home-theme').textContent = e.theme;
   document.getElementById('hc-date').textContent     = e.date||'—';
   document.getElementById('hc-time').textContent     = e.time_range||'';
   document.getElementById('hc-location').textContent = e.location||'—';
@@ -1135,10 +1123,6 @@ async function renderEvent(){
   var parts = e.month.split('.');
   document.getElementById('event-title').textContent = parseInt(parts[1])+'월 앉방데이';
   document.getElementById('event-sub').textContent   = (e.date||'')+' '+(e.time_range||'')+' · '+(e.location||'');
-  if(e.theme){
-    document.getElementById('event-theme-box').style.display = '';
-    document.getElementById('event-theme-title').textContent = e.theme;
-  }
   var pres = cache.presentations.filter(function(p){return p.event_month===e.month;}).sort(function(a,b){return a.order_num-b.order_num;});
   if(!pres.length){
     document.getElementById('event-pres-list').innerHTML = '<div class="pres-item"><span style="color:var(--w3);font-size:13px;">등록된 발표가 없습니다</span></div>';
@@ -1414,7 +1398,6 @@ function selectEvent(month){
   content+='<div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="editEvent(\''+e.id+'\')">기본정보 수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_events\',\''+e.id+'\')">삭제</button></div>';
   content+='</div>';
   content+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">';
-  content+='<div style="background:var(--c0);border-radius:8px;padding:12px;"><div style="font-size:11px;color:var(--c2);margin-bottom:4px;">테마</div><div style="font-size:13px;color:var(--c5);font-weight:500;">'+(e.theme||'—')+'</div></div>';
   content+='<div style="background:var(--c0);border-radius:8px;padding:12px;"><div style="font-size:11px;color:var(--c2);margin-bottom:4px;">장소</div><div style="font-size:13px;color:var(--c5);font-weight:500;">'+(e.location||'—')+'</div></div>';
   content+='<div style="background:var(--c0);border-radius:8px;padding:12px;grid-column:1/-1;"><div style="font-size:11px;color:var(--c2);margin-bottom:6px;">앉방마님 명단</div>'+hostsHtml+'</div>';
   content+='</div>';
@@ -1603,19 +1586,19 @@ function openEditHostModal(month){
 // ── CRUD ──
 async function saveEvent(){
   var id=document.getElementById('em-id').value;
-  var data={ month:document.getElementById('em-month').value.trim(), theme:document.getElementById('em-theme').value.trim(), date:document.getElementById('em-date').value.trim(), time_range:document.getElementById('em-time').value.trim(), location:document.getElementById('em-location').value.trim(), host_team:document.getElementById('em-host-team').value.trim() };
+  var data={ month:document.getElementById('em-month').value.trim(), date:document.getElementById('em-date').value.trim(), time_range:document.getElementById('em-time').value.trim(), location:document.getElementById('em-location').value.trim(), host_team:document.getElementById('em-host-team').value.trim() };
   if(!data.month) return alert('월을 입력하세요');
   if(id) await sb.from('anbang_events').update(data).eq('id',id);
   else   await sb.from('anbang_events').insert(data);
   closeModal('event-modal');
-  ['em-id','em-month','em-theme','em-date','em-host-team'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['em-id','em-month','em-date','em-host-team'].forEach(function(i){ document.getElementById(i).value=''; });
   await loadAdminData();
 }
 
 function editEvent(id){
   var e=cache.events.find(function(x){return x.id===id;});
   if(!e) return;
-  document.getElementById('em-id').value=e.id; document.getElementById('em-month').value=e.month; document.getElementById('em-theme').value=e.theme||''; document.getElementById('em-date').value=e.date||''; document.getElementById('em-time').value=e.time_range||''; document.getElementById('em-location').value=e.location||''; document.getElementById('em-host-team').value=e.host_team||'';
+  document.getElementById('em-id').value=e.id; document.getElementById('em-month').value=e.month; document.getElementById('em-date').value=e.date||''; document.getElementById('em-time').value=e.time_range||''; document.getElementById('em-location').value=e.location||''; document.getElementById('em-host-team').value=e.host_team||'';
   document.getElementById('event-modal-title').textContent='행사 수정';
   openModal('event-modal');
 }
