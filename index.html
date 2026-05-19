@@ -254,8 +254,6 @@ tr:hover td{background:var(--c0);}
 body.slide-mode{overflow:hidden;}
 body.slide-mode #nav,
 body.slide-mode .sec-divider,
-body.slide-mode #sec-story,
-body.slide-mode #sec-presenter,
 body.slide-mode #slideshow-enter-btn,
 body.slide-mode #admin-overlay{display:none!important;}
 
@@ -266,6 +264,17 @@ body.slide-mode section{
   transition:transform .55s cubic-bezier(.65,0,.35,1),opacity .4s ease;
   will-change:transform;
 }
+
+/* 히어로 슬라이드 — 16:9 화면에 맞게 */
+body.slide-mode #sec-home{padding:0 80px;}
+body.slide-mode #sec-home .hero-inner{min-height:unset;padding:40px 0;justify-content:center;}
+body.slide-mode #sec-home .hero-title{font-size:clamp(40px,10vw,120px);}
+body.slide-mode #sec-home .hero-title-sub{font-size:clamp(40px,10vw,120px);}
+body.slide-mode #sec-home .hero-desc{font-size:14px;margin-top:20px;}
+body.slide-mode #sec-home .hero-cards{margin-top:28px;}
+body.slide-mode #sec-home .hero-card{padding:14px 18px;}
+body.slide-mode #sec-home .hero-cta{margin-top:24px;}
+body.slide-mode #sec-home .scroll-hint{display:none;}
 
 /* 행사 안내 슬라이드 — 16:9 화면에 맞게 컴팩트하게 */
 body.slide-mode #sec-event{
@@ -287,6 +296,32 @@ body.slide-mode #sec-event .pres-title{font-size:14px;}
 body.slide-mode #sec-event .pres-presenter{font-size:12px;margin-top:2px;}
 body.slide-mode #sec-event .pres-dur{font-size:11px;}
 body.slide-mode #sec-event .pres-type{font-size:10px;padding:2px 8px;}
+
+/* 지난 앉방데이 슬라이드 — 16:9 */
+body.slide-mode #sec-story{padding:40px 80px 60px;}
+body.slide-mode #sec-story .inner{display:flex;flex-direction:column;height:100%;justify-content:center;}
+body.slide-mode #sec-story .sec-title{font-size:clamp(22px,3vw,36px);margin-bottom:14px;}
+body.slide-mode #sec-story .story-search{padding:8px 14px;font-size:13px;margin-bottom:12px;}
+body.slide-mode #sec-story .story-tabs{margin-bottom:14px;gap:4px;}
+body.slide-mode #sec-story .s-tab{padding:6px 12px;font-size:12px;}
+body.slide-mode #sec-story .event-row-header{padding:12px 20px;}
+body.slide-mode #sec-story .event-row-month{font-size:14px;}
+body.slide-mode #sec-story .pres-rows,
+body.slide-mode #sec-story .event-rows,
+body.slide-mode #sec-story .host-rows{overflow:hidden;max-height:52vh;}
+body.slide-mode #sec-story .story-panel.active{overflow:hidden;}
+
+/* 발표자 가이드 슬라이드 — 16:9 */
+body.slide-mode #sec-presenter{padding:40px 80px 60px;}
+body.slide-mode #sec-presenter .inner{display:flex;flex-direction:column;height:100%;justify-content:center;}
+body.slide-mode #sec-presenter .sec-title{font-size:clamp(22px,3vw,36px);margin-bottom:10px;}
+body.slide-mode #sec-presenter .guide-cards{overflow:hidden;max-height:55vh;}
+body.slide-mode #sec-presenter .guide-card-header{padding:14px 20px;}
+body.slide-mode #sec-presenter .guide-card-name{font-size:14px;}
+body.slide-mode #sec-presenter .guide-card-body{padding:0 20px 16px;}
+body.slide-mode #sec-presenter .schedule-item{padding:12px 20px;}
+body.slide-mode #sec-presenter .submit-row{gap:8px;}
+body.slide-mode #sec-presenter .submit-card{padding:14px 18px;}
 body.slide-mode section.slide-active{
   transform:translateX(0);opacity:1;pointer-events:auto;
 }
@@ -1808,7 +1843,7 @@ function switchPresTab(tab,btn){
 })();
 
 // ══ 발표 모드 ══
-const SLIDE_IDS = ['sec-home', 'sec-event'];
+const SLIDE_IDS = ['sec-home', 'sec-event', 'sec-story', 'sec-presenter'];
 let slideIdx = 0;
 
 function enterSlideMode() {
@@ -1878,6 +1913,8 @@ function slideKeyHandler(e) {
   <div id="slide-dots">
     <button class="slide-dot active" onclick="goToSlide(0)" title="히어로"></button>
     <button class="slide-dot" onclick="goToSlide(1)" title="행사 안내"></button>
+    <button class="slide-dot" onclick="goToSlide(2)" title="지난 앉방데이"></button>
+    <button class="slide-dot" onclick="goToSlide(3)" title="발표자 가이드"></button>
   </div>
   <span id="slide-counter">1 / 2</span>
   <button id="slide-exit" onclick="exitSlideMode()">✕ 나가기</button>
