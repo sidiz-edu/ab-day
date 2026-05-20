@@ -1187,8 +1187,8 @@ function makeEventRowHtml(monthKey, title, hostHtml, count, bodyHtml, dataS, tit
   h += '</div>';
   h += '<div class="event-row-divider"></div>';
   if(titlesText){
-    h += '<div style="flex:1;min-width:0;overflow:hidden;"><div style="font-size:12px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+titlesText+'</div></div>';
-    h += '<div style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;margin-left:16px;flex-shrink:0;">'+count+'개</div>';
+    h += '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:rgba(255,255,255,0.8);line-height:1.6;word-break:keep-all;">'+titlesText+'</div></div>';
+    h += '<div style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;flex-shrink:0;">'+count+'개</div>';
   } else {
     h += '<div class="event-row-host" style="color:rgba(255,255,255,0.65);">발표 '+count+'개</div>';
   }
