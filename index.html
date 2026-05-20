@@ -1196,7 +1196,7 @@ function renderStoryEvents(){
 }
 
 function renderStoryPres(){
-  var filtered = cache.presentations.filter(function(p){return p.type!=='AI CAN DO';});
+  var filtered = cache.presentations.filter(function(p){return p.type==='실무공유';});
   var byMonth = {};
   filtered.forEach(function(p){ if(!byMonth[p.event_month]) byMonth[p.event_month]=[]; byMonth[p.event_month].push(p); });
   var months = Object.keys(byMonth).sort(function(a,b){return b.localeCompare(a);});
@@ -1213,7 +1213,8 @@ function renderStoryPres(){
       h += '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;">'+withTeam(p.presenter,true)+'</div></div></div>';
       return h;
     }).join('');
-    return makeEventRowHtml(month, fmtMonth(month), null, items.length, itemsHtml, month);
+    var dataS = month+' '+items.map(function(p){return p.title+' '+p.presenter;}).join(' ');
+    return makeEventRowHtml(month, fmtMonth(month), null, items.length, itemsHtml, dataS);
   }).join('');
 }
 
@@ -1234,7 +1235,8 @@ function renderStoryAI(){
       h += '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;">'+withTeam(p.presenter,true)+'</div></div></div>';
       return h;
     }).join('');
-    return makeEventRowHtml(month, fmtMonth(month), null, items.length, itemsHtml, month);
+    var dataS = month+' '+items.map(function(p){return p.title+' '+p.presenter;}).join(' ');
+    return makeEventRowHtml(month, fmtMonth(month), null, items.length, itemsHtml, dataS);
   }).join('');
 }
 
