@@ -150,7 +150,7 @@ section{min-height:100vh;display:flex;flex-direction:column;justify-content:cent
 .event-row-header{display:flex;align-items:center;gap:28px;padding:20px 28px;transition:background 0.15s;}
 .event-row-header:hover{background:rgba(255,255,255,0.08);}
 .event-row.open .event-row-header{background:rgba(255,255,255,0.1);}
-.event-row-month{font-size:16px;font-weight:700;color:#ffffff;min-width:160px;flex-shrink:0;}
+.event-row-month{font-size:16px;font-weight:700;color:#ffffff;min-width:100px;flex-shrink:0;}
 .event-row-date{font-size:13px;color:rgba(255,255,255,0.65);}
 .event-row-divider{width:1px;height:28px;background:rgba(255,255,255,0.25);flex-shrink:0;}
 .event-row-host{font-size:14px;color:rgba(255,255,255,0.85);flex:1;}
@@ -168,7 +168,7 @@ section{min-height:100vh;display:flex;flex-direction:column;justify-content:cent
 /* 앉방마님 목록 */
 .host-rows{display:grid;gap:1px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;}
 .host-row{display:flex;align-items:flex-start;gap:28px;padding:18px 28px;background:rgba(255,255,255,0.05);}
-.host-row-month{font-size:15px;font-weight:600;color:#ffffff;min-width:160px;flex-shrink:0;}
+.host-row-month{font-size:15px;font-weight:600;color:#ffffff;min-width:100px;flex-shrink:0;}
 .host-row-names{font-size:15px;color:rgba(255,255,255,0.9);flex:1;line-height:1.7;}
 .team-hint{font-size:12px;color:rgba(255,255,255,0.65);margin-left:2px;}
 .type-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
@@ -897,10 +897,17 @@ const DEFAULT_GUIDE_TYPES = [
 ];
 
 // ── 유틸 ──
+function fmtDate(d){
+  if(!d) return '';
+  var m = d.match(/(\d+)월\s*(\d+)일\s*(\(.\))/);
+  if(m) return m[1].padStart(2,'0')+'.'+m[2].padStart(2,'0')+' '+m[3];
+  return d;
+}
+
 function fmtMonth(m){
   if(!m) return '';
   var parts = m.split('.');
-  return parts[0].slice(2)+'년 '+parseInt(parts[1])+'월 앉방데이';
+  return parts[0].slice(2)+'년 '+parseInt(parts[1])+'월';
 }
 
 function typePillHtml(type){
@@ -1171,15 +1178,20 @@ function makePresItemHtml(p){
   return h;
 }
 
-function makeEventRowHtml(monthKey, title, hostHtml, count, bodyHtml, dataS){
+function makeEventRowHtml(monthKey, title, hostHtml, count, bodyHtml, dataS, titlesText){
   var h = '<div class="event-row" data-s="'+dataS+'" onclick="toggleEventRow(this)">';
   h += '<div class="event-row-header">';
-  h += '<div style="min-width:160px;flex-shrink:0;">';
+  h += '<div style="min-width:100px;flex-shrink:0;">';
   h += '<div class="event-row-month">'+title+'</div>';
   if(hostHtml) h += '<div class="event-row-date">'+hostHtml+'</div>';
   h += '</div>';
   h += '<div class="event-row-divider"></div>';
-  h += '<div class="event-row-host" style="color:rgba(255,255,255,0.65);">발표 '+count+'개</div>';
+  if(titlesText){
+    h += '<div style="flex:1;min-width:0;overflow:hidden;"><div style="font-size:12px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+titlesText+'</div></div>';
+    h += '<div style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;margin-left:16px;flex-shrink:0;">'+count+'개</div>';
+  } else {
+    h += '<div class="event-row-host" style="color:rgba(255,255,255,0.65);">발표 '+count+'개</div>';
+  }
   h += '<div class="event-row-chevron">▾</div>';
   h += '</div>';
   h += '<div class="event-row-body">'+bodyHtml+'</div>';
@@ -1192,7 +1204,7 @@ function renderStoryEvents(){
     var pres = cache.presentations.filter(function(p){return p.event_month===e.month;}).sort(function(a,b){return a.order_num-b.order_num;});
     var presHtml = pres.length ? pres.map(makePresItemHtml).join('') : '<div style="font-size:13px;color:rgba(255,255,255,0.5);padding:8px 0;">등록된 발표가 없습니다</div>';
     var hostLine = '앉방마님 : '+getHostNamesWithTeam(e.month);
-    return makeEventRowHtml(e.month, fmtMonth(e.month), (e.date||e.month), pres.length, presHtml, e.month+' '+(e.host_team||''));
+    return makeEventRowHtml(e.month, fmtMonth(e.month), fmtDate(e.date)||e.month, pres.length, presHtml, e.month+' '+(e.host_team||''));
   }).join('');
 }
 
@@ -1215,7 +1227,9 @@ function renderStoryPres(){
       return h;
     }).join('');
     var dataS = month+' '+items.map(function(p){return p.title+' '+p.presenter;}).join(' ');
-    return makeEventRowHtml(month, fmtMonth(month), null, items.length, itemsHtml, dataS);
+    var titlesText = items.map(function(p){return p.title;}).join(' · ');
+    var ev = cache.events.find(function(e){return e.month===month;});
+    return makeEventRowHtml(month, fmtMonth(month), ev&&ev.date?fmtDate(ev.date):null, items.length, itemsHtml, dataS, titlesText);
   }).join('');
 }
 
@@ -1237,7 +1251,9 @@ function renderStoryAI(){
       return h;
     }).join('');
     var dataS = month+' '+items.map(function(p){return p.title+' '+p.presenter;}).join(' ');
-    return makeEventRowHtml(month, fmtMonth(month), null, items.length, itemsHtml, dataS);
+    var titlesText = items.map(function(p){return p.title;}).join(' · ');
+    var ev = cache.events.find(function(e){return e.month===month;});
+    return makeEventRowHtml(month, fmtMonth(month), ev&&ev.date?fmtDate(ev.date):null, items.length, itemsHtml, dataS, titlesText);
   }).join('');
 }
 
@@ -1253,8 +1269,10 @@ function renderStoryHosts(){
       return h.name+team;
     }).join(' &nbsp;·&nbsp; ');
     var dataS = month+' '+hostList.map(function(h){return h.name;}).join(' ');
+    var ev = cache.events.find(function(e){return e.month===month;});
+    var dateHtml = ev&&ev.date ? '<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">'+fmtDate(ev.date)+'</div>' : '';
     var h = '<div class="host-row" data-s="'+dataS+'">';
-    h += '<div class="host-row-month">'+fmtMonth(month)+'</div>';
+    h += '<div class="host-row-month">'+fmtMonth(month)+dateHtml+'</div>';
     h += '<div class="host-row-names">'+names+'</div>';
     h += '</div>';
     return h;
