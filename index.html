@@ -831,7 +831,6 @@ body.slide-mode #slide-ui{display:block;}
       <div class="form-group"><label class="form-label">발표자 (복수 시 콤마 구분)</label><input class="form-input" id="pm-presenter" placeholder="홍길동, 김철수"/></div>
     </div>
     <div class="form-group"><label class="form-label">시간 (분)</label><input class="form-input" id="pm-duration" type="number" placeholder="15"/></div>
-    <div class="form-group"><label class="form-label">순서</label><input class="form-input" id="pm-order" type="number" placeholder="1"/></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
       <button class="btn btn-ghost" onclick="closeModal('pres-modal')">취소</button>
       <button class="btn btn-primary" onclick="savePresentation()">저장</button>
@@ -1575,7 +1574,7 @@ function openModal(id){
 
 function openPresModalForEvent(month){
   document.getElementById('pm-month').innerHTML = cache.events.map(function(e){ return '<option value="'+e.month+'"'+(e.month===month?' selected':'')+'>'+fmtMonth(e.month)+'</option>'; }).join('');
-  ['pm-id','pm-title','pm-presenter','pm-duration','pm-order'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['pm-id','pm-title','pm-presenter','pm-duration'].forEach(function(id){ document.getElementById(id).value=''; });
   document.getElementById('pm-type').value='실무공유';
   onPresTypeChange();
   document.getElementById('pres-modal-title').textContent='순서 추가';
@@ -1689,12 +1688,15 @@ async function savePresentation(){
   var id=document.getElementById('pm-id').value;
   var type=document.getElementById('pm-type').value;
   var isBreak = type==='쉬는 시간';
-  var data={ event_month:document.getElementById('pm-month').value, title:isBreak?'쉬는 시간':document.getElementById('pm-title').value.trim(), presenter:isBreak?'':document.getElementById('pm-presenter').value.trim(), type:type, duration_min:parseInt(document.getElementById('pm-duration').value)||null, order_num:parseInt(document.getElementById('pm-order').value)||0 };
+  var existingOrders = cache.presentations.filter(function(p){return p.event_month===document.getElementById('pm-month').value;}).map(function(p){return p.order_num||0;});
+  var nextOrder = existingOrders.length ? Math.max.apply(null,existingOrders)+1 : 0;
+  var currentOrder = id ? (cache.presentations.find(function(p){return p.id===id;})||{}).order_num : nextOrder;
+  var data={ event_month:document.getElementById('pm-month').value, title:isBreak?'쉬는 시간':document.getElementById('pm-title').value.trim(), presenter:isBreak?'':document.getElementById('pm-presenter').value.trim(), type:type, duration_min:parseInt(document.getElementById('pm-duration').value)||null, order_num:currentOrder };
   if(!isBreak && !data.title) return alert('제목을 입력하세요');
   if(id) await sb.from('anbang_presentations').update(data).eq('id',id);
   else   await sb.from('anbang_presentations').insert(data);
   closeModal('pres-modal');
-  ['pm-id','pm-title','pm-presenter','pm-duration','pm-order'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['pm-id','pm-title','pm-presenter','pm-duration'].forEach(function(i){ document.getElementById(i).value=''; });
   await loadAdminData();
   if(selectedEventMonth) selectEvent(selectedEventMonth);
 }
@@ -1704,7 +1706,7 @@ function editPres(id){
   if(!p) return;
   openModal('pres-modal');
   setTimeout(function(){
-    document.getElementById('pm-id').value=p.id; document.getElementById('pm-month').value=p.event_month; document.getElementById('pm-title').value=p.title; document.getElementById('pm-presenter').value=p.presenter; document.getElementById('pm-type').value=p.type; document.getElementById('pm-duration').value=p.duration_min||''; document.getElementById('pm-order').value=p.order_num||'';
+    document.getElementById('pm-id').value=p.id; document.getElementById('pm-month').value=p.event_month; document.getElementById('pm-title').value=p.title; document.getElementById('pm-presenter').value=p.presenter; document.getElementById('pm-type').value=p.type; document.getElementById('pm-duration').value=p.duration_min||'';
     onPresTypeChange();
     document.getElementById('pres-modal-title').textContent='순서 수정';
   },50);
