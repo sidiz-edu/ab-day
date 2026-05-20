@@ -721,7 +721,11 @@ body.slide-mode #slide-ui{display:block;}
             <button class="tab active" id="people-sub-all" onclick="switchPeopleTab('all',this)">전체 인원</button>
             <button class="tab" id="people-sub-anbang" onclick="switchPeopleTab('anbang',this)">앉방데이 참가 인원</button>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('people-modal')">+ 인물 추가</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="applyEmailMap()">이메일 일괄 업데이트</button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadPeopleExcel()">⬇ 이메일 목록 다운로드</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('people-modal')">+ 인물 추가</button>
+          </div>
         </div>
         <!-- 전체 인원 -->
         <div id="people-body-all" class="card" style="overflow:hidden;">
@@ -730,9 +734,10 @@ body.slide-mode #slide-ui{display:block;}
               <th style="cursor:pointer;" onclick="sortPeople('name')">이름 <span id="sort-name-icon">↕</span></th>
               <th style="cursor:pointer;" onclick="sortPeople('team')">팀 <span id="sort-team-icon">↕</span></th>
               <th style="cursor:pointer;" onclick="sortPeople('title')">직함 <span id="sort-title-icon">↕</span></th>
+              <th>이메일</th>
               <th></th>
             </tr></thead>
-            <tbody id="admin-people-all-body"><tr><td colspan="4" class="loading">불러오는 중...</td></tr></tbody>
+            <tbody id="admin-people-all-body"><tr><td colspan="5" class="loading">불러오는 중...</td></tr></tbody>
           </table>
         </div>
         <!-- 앉방데이 참가 인원 -->
@@ -861,6 +866,7 @@ body.slide-mode #slide-ui{display:block;}
     <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="ppm-name" placeholder="홍길동"/></div>
     <div class="form-group"><label class="form-label">팀</label><input class="form-input" id="ppm-team" placeholder="사업운영팀"/></div>
     <div class="form-group"><label class="form-label">직함 (선택)</label><input class="form-input" id="ppm-title" placeholder="팀장"/></div>
+    <div class="form-group"><label class="form-label">이메일 (선택)</label><input class="form-input" id="ppm-email" placeholder="hong@fursys.com"/></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
       <button class="btn btn-ghost" onclick="closeModal('people-modal')">취소</button>
       <button class="btn btn-primary" onclick="savePerson()">저장</button>
@@ -1522,7 +1528,7 @@ function renderAdminPeople(){
 
   // 전체 인원 탭
   document.getElementById('admin-people-all-body').innerHTML = all.map(function(p){
-    return '<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c3);font-size:12px;">'+(p.title||'—')+'</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" style="margin-right:4px;" onclick="editPerson(\''+p.id+'\')">수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_people\',\''+p.id+'\')">삭제</button></td></tr>';
+    return '<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c3);font-size:12px;">'+(p.title||'—')+'</td><td style="color:var(--c3);font-size:12px;">'+(p.email||'—')+'</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" style="margin-right:4px;" onclick="editPerson(\''+p.id+'\')">수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_people\',\''+p.id+'\')">삭제</button></td></tr>';
   }).join('');
 
   // 앉방데이 참가 인원 (경험자)
@@ -1731,19 +1737,19 @@ async function deleteHostsByMonth(month){
 
 async function savePerson(){
   var id=document.getElementById('ppm-id').value;
-  var data={ name:document.getElementById('ppm-name').value.trim(), team:document.getElementById('ppm-team').value.trim(), title:document.getElementById('ppm-title').value.trim()||null };
+  var data={ name:document.getElementById('ppm-name').value.trim(), team:document.getElementById('ppm-team').value.trim(), title:document.getElementById('ppm-title').value.trim()||null, email:document.getElementById('ppm-email').value.trim()||null };
   if(!data.name||!data.team) return alert('이름과 팀을 입력하세요');
   if(id) await sb.from('anbang_people').update(data).eq('id',id);
   else   await sb.from('anbang_people').insert(data);
   closeModal('people-modal');
-  ['ppm-id','ppm-name','ppm-team','ppm-title'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['ppm-id','ppm-name','ppm-team','ppm-title','ppm-email'].forEach(function(i){ document.getElementById(i).value=''; });
   await loadAdminData();
 }
 
 function editPerson(id){
   var p=cache.people.find(function(x){return x.id===id;});
   if(!p) return;
-  document.getElementById('ppm-id').value=p.id; document.getElementById('ppm-name').value=p.name; document.getElementById('ppm-team').value=p.team; document.getElementById('ppm-title').value=p.title||'';
+  document.getElementById('ppm-id').value=p.id; document.getElementById('ppm-name').value=p.name; document.getElementById('ppm-team').value=p.team; document.getElementById('ppm-title').value=p.title||''; document.getElementById('ppm-email').value=p.email||'';
   document.getElementById('people-modal-title').textContent='인물 수정';
   openModal('people-modal');
 }
@@ -1902,6 +1908,58 @@ function slideKeyHandler(e) {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); slideMove(1); }
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); slideMove(-1); }
   else if (e.key === 'Escape') exitSlideMode();
+}
+
+// ── 이메일 일괄 업데이트 ──
+const EMAIL_MAP = {
+  '강보라':'bora_kang@fursys.com','강태윤':'taeyun_kang@fursys.com','고태진':'loopy@fursys.com',
+  '곽서정':'seojung_kwak@fursys.com','곽유진':'youjin_kwag@fursys.com','권소현':'sohyun_kwon@fursys.com',
+  '기준태':'joontae_ki@fursys.com','김다솜':'dasom_kim@fursys.com','김명영':'kmy4376@fursys.com',
+  '김미래':'mirae_kim@fursys.com','김수지':'suji_kim3@fursys.com','김예찬':'yechan_kim@fursys.com',
+  '김재근':'jaegeun_kim@fursys.com','김재영':'jaeyoung_kim@fursys.com','노정빈':'jeongbin_noh@fursys.com',
+  '류재희':'jaehui_ryu@fursys.com','류태희':'taeheeryu@fursys.com','박성웅':'seongwoong_park@fursys.com',
+  '박소윤':'soyoun_park@fursys.com','박재석':'jaeseok_park@fursys.com','박종표':'diki82@fursys.com',
+  '박주원':'juwon_park2@fursys.com','박준모':'junmopark@fursys.com','박진주':'jinju_park@fursys.com',
+  '박찬호':'chanho_park@fursys.com','박혜정':'hyejeong_park@fursys.com','배동원':'dongwon_bae@fursys.com',
+  '배시온':'sion_bae@fursys.com','서지원':'jiwon_seo@fursys.com','서현수':'hyunsu_seo@fursys.com',
+  '서현종':'hyunjong_seo@fursys.com','송행남':'haengnam_song@fursys.com','신수연':'danmi@fursys.com',
+  '신양수':'yangsoo_shin@fursys.com','심영수':'youngsoo_shim@fursys.com','양도연':'doyeon_yang@fursys.com',
+  '엄소영':'soyoung_um@fursys.com','염제명':'jemyung_yum@fursys.com','원재희':'jaehui_won@fursys.com',
+  '유성호':'sungho_yoo@fursys.com','윤대호':'ftemuse@fursys.com','윤해웅':'haewoong_yoon@fursys.com',
+  '윤휘성':'hwiseong_yun@fursys.com','이미선':'miseon_lee@fursys.com','이상재':'sangjae_lee@fursys.com',
+  '이상호':'sangho_lee@fursys.com','이선영':'seonyeong_lee@fursys.com','이아름':'areum_lee@fursys.com',
+  '이연재':'yeonjae_lee@fursys.com','이영탁':'loveso@fursys.com','이윤주':'yunjoo_lee@fursys.com',
+  '이종우':'antsmom@fursys.com','이종원':'jongwon_lee2@fursys.com','이주미':'jumi_lee@fursys.com',
+  '이지혜':'jihye_lee2@fursys.com','이혜린':'hyerin_lee@fursys.com','이화준':'hwajoon_lee@fursys.com',
+  '장수지':'suji_jang@fursys.com','전강헌':'kangheon_jeon@fursys.com','정규식':'kyusik_jung@fursys.com',
+  '조성준':'seongjune_jo@fursys.com','최선균':'csk830@fursys.com','최재원':'jaewon_choi2@fursys.com',
+  '최현지':'hyunjee_choi@fursys.com','한남희':'namhee_han@fursys.com','한수민':'sumin_han@fursys.com',
+  '한슬기':'seulgi_han@fursys.com','함승찬':'seungchan_hahm@fursys.com','허윤정':'yoonjeong_heo@fursys.com',
+  '현지영':'jiyoung_hyun@fursys.com','홍석준':'sukjun_hong@fursys.com','홍예지':'yeji_hong@fursys.com',
+  '홍장건':'hjg00@fursys.com','황민영':'respire3740@fursys.com'
+};
+
+async function applyEmailMap(){
+  if(!confirm('DB에 이메일을 일괄 업데이트할까요?')) return;
+  var people = cache.people;
+  var updates = people.filter(function(p){ return EMAIL_MAP[p.name]; }).map(function(p){
+    return sb.from('anbang_people').update({email: EMAIL_MAP[p.name]}).eq('id', p.id);
+  });
+  await Promise.all(updates);
+  await loadAdminData();
+  alert('완료! '+updates.length+'명 업데이트됨');
+}
+
+function downloadPeopleExcel(){
+  var rows = [['이름','이메일']].concat(
+    cache.people.filter(function(p){ return p.email; })
+      .sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); })
+      .map(function(p){ return [p.name, p.email]; })
+  );
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '이메일 목록');
+  XLSX.writeFile(wb, '앉방데이_이메일목록.xlsx');
 }
 </script>
 
