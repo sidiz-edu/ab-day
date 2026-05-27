@@ -2088,7 +2088,7 @@ function renderSessionModal() {
   typeEl.style.cssText = typeStyles;
   // 타이틀 & 발표자
   document.getElementById('sm-title').textContent = p.title;
-  document.getElementById('sm-presenter').textContent = withTeam(p.presenter, true);
+  document.getElementById('sm-presenter').innerHTML = withTeam(p.presenter, true);
   // 링크 (채산실적공유)
   var linkWrap = document.getElementById('sm-link-wrap');
   if (p.type === '채산실적공유') {
