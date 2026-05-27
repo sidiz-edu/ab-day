@@ -396,6 +396,21 @@ body.slide-mode #slide-ui{display:block;}
   transition:background .2s;
 }
 #slide-exit:hover{background:rgba(255,255,255,0.25);}
+
+/* 자리 배치 모달 */
+#seating-modal-bg{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+#seating-modal-bg.open{display:flex;}
+#seating-modal{background:linear-gradient(135deg,#e8f4f8,#c2dff0);border-radius:20px;padding:36px 40px;width:90vw;max-width:900px;max-height:90vh;overflow-y:auto;position:relative;}
+.seating-modal-title{font-size:28px;font-weight:900;color:#0d2657;text-align:center;margin-bottom:28px;letter-spacing:-0.5px;}
+.seating-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.unit-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(13,38,87,0.1);}
+.unit-card-header{background:#0d2657;padding:12px;text-align:center;font-size:12px;font-weight:800;color:#fff;letter-spacing:0.1em;}
+.unit-card-body{padding:12px 16px;}
+.unit-leader{font-size:12px;font-weight:700;color:#06b6d4;text-align:center;margin-bottom:8px;}
+.unit-members{display:flex;flex-direction:column;gap:3px;}
+.unit-member{font-size:12px;color:#1a2f5f;text-align:center;}
+#seating-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:#0d2657;opacity:0.5;transition:opacity .15s;}
+#seating-close:hover{opacity:1;}
 </style>
 </head>
 <body>
@@ -457,6 +472,7 @@ body.slide-mode #slide-ui{display:block;}
     <div class="hero-cta">
       <button class="btn-main" onclick="scrollToSec('sec-event')">행사 안내 보기</button>
       <button class="btn-outline" onclick="scrollToSec('sec-presenter')">발표자 가이드</button>
+      <button class="btn-outline" onclick="openSeating()">자리 배치</button>
     </div>
   </div>
   <div class="scroll-hint">
@@ -641,102 +657,23 @@ body.slide-mode #slide-ui{display:block;}
   </div>
 </section>
 
-<!-- ══════════════════════════════════
-     섹션 5 — 자리 배치
-══════════════════════════════════ -->
-<div class="sec-divider"></div>
-<section id="sec-seating">
-  <div class="seating-title">자리 배치</div>
-  <div class="seating-grid">
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 01</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 권소현</div>
-        <div class="unit-members">
-          <span class="unit-member">홍장건</span><span class="unit-member">홍예지</span>
-          <span class="unit-member">양도연</span><span class="unit-member">김예찬</span>
-          <span class="unit-member">유성호</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 02</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 이미선</div>
-        <div class="unit-members">
-          <span class="unit-member">신수연</span><span class="unit-member">이상호</span>
-          <span class="unit-member">조성준</span><span class="unit-member">고태진</span>
-          <span class="unit-member">전강헌</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 03</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 김미래</div>
-        <div class="unit-members">
-          <span class="unit-member">서현종</span><span class="unit-member">곽유진</span>
-          <span class="unit-member">김재영</span><span class="unit-member">곽서정</span>
-          <span class="unit-member">서지원</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 04</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 이혜린</div>
-        <div class="unit-members">
-          <span class="unit-member">송행남</span><span class="unit-member">염제명</span>
-          <span class="unit-member">이선영</span><span class="unit-member">박종표</span>
-          <span class="unit-member">이상재</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 05</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 강태윤</div>
-        <div class="unit-members">
-          <span class="unit-member">홍석준</span><span class="unit-member">김다솜</span>
-          <span class="unit-member">윤해웅</span><span class="unit-member">정규식</span>
-          <span class="unit-member">이아름</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 06</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 노정빈</div>
-        <div class="unit-members">
-          <span class="unit-member">강보라</span><span class="unit-member">신양수</span>
-          <span class="unit-member">이종우</span><span class="unit-member">장수지</span>
-          <span class="unit-member">박성웅</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 07</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 한남희</div>
-        <div class="unit-members">
-          <span class="unit-member">류재희</span><span class="unit-member">최선균</span>
-          <span class="unit-member">윤휘성</span><span class="unit-member">최재원</span>
-          <span class="unit-member">최현지</span>
-        </div>
-      </div>
-    </div>
-    <div class="unit-card">
-      <div class="unit-card-header">UNIT 08</div>
-      <div class="unit-card-body">
-        <div class="unit-leader">조장: 이윤주</div>
-        <div class="unit-members">
-          <span class="unit-member">엄소영</span><span class="unit-member">서현수</span>
-          <span class="unit-member">윤대호</span><span class="unit-member">배시온</span>
-        </div>
-      </div>
+<!-- 자리 배치 모달 -->
+<div id="seating-modal-bg" onclick="if(event.target===this)closeSeating()">
+  <div id="seating-modal">
+    <button id="seating-close" onclick="closeSeating()">✕</button>
+    <div class="seating-modal-title">자리 배치</div>
+    <div class="seating-grid">
+      <div class="unit-card"><div class="unit-card-header">UNIT 01</div><div class="unit-card-body"><div class="unit-leader">조장: 권소현</div><div class="unit-members"><span class="unit-member">홍장건</span><span class="unit-member">홍예지</span><span class="unit-member">양도연</span><span class="unit-member">김예찬</span><span class="unit-member">유성호</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 02</div><div class="unit-card-body"><div class="unit-leader">조장: 이미선</div><div class="unit-members"><span class="unit-member">신수연</span><span class="unit-member">이상호</span><span class="unit-member">조성준</span><span class="unit-member">고태진</span><span class="unit-member">전강헌</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 03</div><div class="unit-card-body"><div class="unit-leader">조장: 김미래</div><div class="unit-members"><span class="unit-member">서현종</span><span class="unit-member">곽유진</span><span class="unit-member">김재영</span><span class="unit-member">곽서정</span><span class="unit-member">서지원</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 04</div><div class="unit-card-body"><div class="unit-leader">조장: 이혜린</div><div class="unit-members"><span class="unit-member">송행남</span><span class="unit-member">염제명</span><span class="unit-member">이선영</span><span class="unit-member">박종표</span><span class="unit-member">이상재</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 05</div><div class="unit-card-body"><div class="unit-leader">조장: 강태윤</div><div class="unit-members"><span class="unit-member">홍석준</span><span class="unit-member">김다솜</span><span class="unit-member">윤해웅</span><span class="unit-member">정규식</span><span class="unit-member">이아름</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 06</div><div class="unit-card-body"><div class="unit-leader">조장: 노정빈</div><div class="unit-members"><span class="unit-member">강보라</span><span class="unit-member">신양수</span><span class="unit-member">이종우</span><span class="unit-member">장수지</span><span class="unit-member">박성웅</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 07</div><div class="unit-card-body"><div class="unit-leader">조장: 한남희</div><div class="unit-members"><span class="unit-member">류재희</span><span class="unit-member">최선균</span><span class="unit-member">윤휘성</span><span class="unit-member">최재원</span><span class="unit-member">최현지</span></div></div></div>
+      <div class="unit-card"><div class="unit-card-header">UNIT 08</div><div class="unit-card-body"><div class="unit-leader">조장: 이윤주</div><div class="unit-members"><span class="unit-member">엄소영</span><span class="unit-member">서현수</span><span class="unit-member">윤대호</span><span class="unit-member">배시온</span></div></div></div>
     </div>
   </div>
-</section>
+</div>
 
 <!-- ══════════════════════════════════
      운영관리 오버레이
@@ -2023,7 +1960,7 @@ function switchPresTab(tab,btn){
 })();
 
 // ══ 발표 모드 ══
-const SLIDE_IDS = ['sec-home', 'sec-event', 'sec-story', 'sec-presenter', 'sec-seating'];
+const SLIDE_IDS = ['sec-home', 'sec-event', 'sec-story', 'sec-presenter'];
 let slideIdx = 0;
 
 function enterSlideMode() {
@@ -2071,6 +2008,9 @@ function updateSlideUI() {
     d.classList.toggle('active', i === slideIdx);
   });
 }
+
+function openSeating(){ document.getElementById('seating-modal-bg').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeSeating(){ document.getElementById('seating-modal-bg').classList.remove('open'); document.body.style.overflow=''; }
 
 function slideKeyHandler(e) {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); slideMove(1); }
@@ -2147,7 +2087,6 @@ function downloadPeopleExcel(){
     <button class="slide-dot" onclick="goToSlide(1)" title="행사 안내"></button>
     <button class="slide-dot" onclick="goToSlide(2)" title="지난 앉방데이"></button>
     <button class="slide-dot" onclick="goToSlide(3)" title="발표자 가이드"></button>
-    <button class="slide-dot" onclick="goToSlide(4)" title="자리 배치"></button>
   </div>
   <span id="slide-counter">1 / 2</span>
   <button id="slide-exit" onclick="exitSlideMode()">✕ 나가기</button>
