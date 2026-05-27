@@ -351,6 +351,11 @@ body.slide-mode section.slide-next{
   display:none;position:fixed;inset:0;z-index:300;pointer-events:none;
 }
 body.slide-mode #slide-ui{display:block;}
+/* 슬라이드 모드 — 커서 자동 숨김 */
+body.slide-mode{cursor:none;}
+body.slide-mode.cursor-visible{cursor:default;}
+body.slide-mode.cursor-visible *{cursor:default;}
+body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
 
 /* 이전/다음 화살표 */
 .slide-arrow{
@@ -2011,6 +2016,10 @@ function enterSlideMode() {
   applySlideClasses();
   updateSlideUI();
   document.addEventListener('keydown', slideKeyHandler);
+  // 전체화면 진입
+  var el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 }
 
 function exitSlideMode() {
@@ -2021,7 +2030,35 @@ function exitSlideMode() {
   });
   document.removeEventListener('keydown', slideKeyHandler);
   window.scrollTo({top:0,behavior:'instant'});
+  // 전체화면 해제
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
 }
+
+// 슬라이드 모드 커서 자동 숨김 (3초 미동시 숨김)
+var cursorTimer = null;
+document.addEventListener('mousemove', function() {
+  if (!document.body.classList.contains('slide-mode')) return;
+  document.body.classList.add('cursor-visible');
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(function() {
+    document.body.classList.remove('cursor-visible');
+  }, 3000);
+});
+
+// 브라우저 ESC로 전체화면 나갔을 때 슬라이드 모드도 같이 종료
+document.addEventListener('fullscreenchange', function() {
+  if (!document.fullscreenElement && document.body.classList.contains('slide-mode')) {
+    document.body.classList.remove('slide-mode');
+    SLIDE_IDS.forEach(id => {
+      document.getElementById(id).classList.remove('slide-active','slide-prev','slide-next');
+    });
+    document.removeEventListener('keydown', slideKeyHandler);
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+});
 
 function applySlideClasses() {
   SLIDE_IDS.forEach((id, i) => {
