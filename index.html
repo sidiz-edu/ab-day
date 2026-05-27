@@ -463,11 +463,16 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
 .pres-thumb.active .pres-thumb-num{color:#fff;}
 .pres-thumb-name{font-size:11px;color:rgba(255,255,255,0.45);margin-top:4px;}
 .pres-thumb.active .pres-thumb-name{color:rgba(255,255,255,0.85);}
+#presenter-sessions{display:none;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
+#presenter-sessions.visible{display:flex;gap:8px;}
+.pres-session-chip{flex-shrink:0;background:rgba(255,255,255,0.06);border:1.5px solid transparent;border-radius:8px;padding:6px 12px;cursor:pointer;transition:all .18s;font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pres-session-chip:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);}
+.pres-session-chip.active{border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.14);color:#fff;}
 #presenter-controls{display:flex;align-items:center;justify-content:center;gap:20px;}
 .pres-ctrl-btn{background:rgba(255,255,255,0.1);border:none;color:#fff;padding:7px 20px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;}
 .pres-ctrl-btn:hover{background:rgba(255,255,255,0.2);}
 .pres-ctrl-btn:disabled{opacity:0.25;cursor:default;}
-#presenter-counter{font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);min-width:48px;text-align:center;}
+#presenter-counter{font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);min-width:64px;text-align:center;}
 
 /* 자리 배치 모달 */
 #seating-modal-bg{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
@@ -766,6 +771,7 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
     <div class="pres-thumb" onclick="presGoto(2)"><div class="pres-thumb-num">03</div><div class="pres-thumb-name">지난 앉방데이</div></div>
     <div class="pres-thumb" onclick="presGoto(3)"><div class="pres-thumb-num">04</div><div class="pres-thumb-name">발표자 가이드</div></div>
   </div>
+  <div id="presenter-sessions"></div>
   <div id="presenter-controls">
     <button class="pres-ctrl-btn" id="pres-prev-btn" onclick="presMove(-1)">◀ 이전</button>
     <span id="presenter-counter">1 / 4</span>
@@ -2170,14 +2176,17 @@ try { slideChannel = new BroadcastChannel('ab-day-slide'); } catch(e){ slideChan
 // ── 발표자 보기 모드 ──
 var presenterPopup = null;
 var presIdx = 0;
+var presSessionIdx = -1; // -1 = 세션 보기 아닌 상태
 
 function openPresenterMode() {
   var base = location.href.split('?')[0].split('#')[0];
   presenterPopup = window.open(base + '?slideshow=1', 'ab-slideshow', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no');
   document.getElementById('presenter-overlay').classList.add('open');
+  presSessionIdx = -1;
   updatePresenterView(0);
   slideChannel.onmessage = function(e) {
-    if (e.data && e.data.cmd === 'sync') updatePresenterView(e.data.idx);
+    if (!e.data) return;
+    if (e.data.cmd === 'sync') updatePresenterView(e.data.idx);
   };
 }
 function closePresenterMode() {
@@ -2186,25 +2195,111 @@ function closePresenterMode() {
   presenterPopup = null;
   slideChannel.onmessage = null;
 }
+
+// 슬라이드 썸네일 클릭
 function presGoto(idx) {
+  presSessionIdx = -1;
   updatePresenterView(idx);
   try { slideChannel.postMessage({ cmd: 'goto', idx: idx }); } catch(e){}
+  // 행사 안내가 아니면 팝업의 세션 모달 닫기
+  if (idx !== 1) { try { slideChannel.postMessage({ cmd: 'session-close' }); } catch(e){} }
 }
+
+// 세션 칩 클릭 (sIdx = 비-쉬는시간 기준 순번)
+function presGotoSession(sIdx) {
+  presSessionIdx = sIdx;
+  presIdx = 1; // 행사 안내 슬라이드
+  updatePresenterSessionHighlight(sIdx);
+  var rawIdx = getRawSessionIdx(sIdx);
+  try {
+    slideChannel.postMessage({ cmd: 'goto', idx: 1 });
+    slideChannel.postMessage({ cmd: 'session', idx: rawIdx });
+  } catch(e){}
+  var sessions = sessionPresArr.filter(function(p){ return p.type !== '쉬는 시간'; });
+  document.getElementById('presenter-counter').textContent = '세션 ' + (sIdx+1) + ' / ' + sessions.length;
+  document.getElementById('pres-prev-btn').disabled = false;
+  document.getElementById('pres-next-btn').disabled = false;
+}
+
+// 다음/이전 화살표
 function presMove(dir) {
+  var sessions = sessionPresArr.filter(function(p){ return p.type !== '쉬는 시간'; });
+
+  if (presIdx === 1 && sessions.length > 0) {
+    // 행사 안내 슬라이드에서는 세션 단계 포함
+    if (presSessionIdx === -1 && dir > 0) {
+      // 행사 안내 → 첫 번째 세션
+      presGotoSession(0);
+      return;
+    }
+    if (presSessionIdx >= 0) {
+      var next = presSessionIdx + dir;
+      if (next >= 0 && next < sessions.length) {
+        presGotoSession(next);
+        return;
+      } else if (next < 0) {
+        // 첫 세션에서 이전 → 행사 안내 슬라이드로
+        presSessionIdx = -1;
+        updatePresenterView(1);
+        try { slideChannel.postMessage({ cmd: 'session-close' }); } catch(e){}
+        return;
+      } else {
+        // 마지막 세션에서 다음 → 다음 메인 슬라이드
+        presSessionIdx = -1;
+        try { slideChannel.postMessage({ cmd: 'session-close' }); } catch(e){}
+        presGoto(2);
+        return;
+      }
+    }
+  }
+  // 일반 슬라이드 이동
+  presSessionIdx = -1;
   presGoto(Math.max(0, Math.min(SLIDE_IDS.length - 1, presIdx + dir)));
 }
+
+// sessionPresArr에서 비-쉬는시간 기준 n번째의 실제 index 반환
+function getRawSessionIdx(n) {
+  var count = -1;
+  for (var i = 0; i < sessionPresArr.length; i++) {
+    if (sessionPresArr[i].type !== '쉬는 시간') count++;
+    if (count === n) return i;
+  }
+  return n;
+}
+
+function updatePresenterSessionHighlight(sIdx) {
+  document.querySelectorAll('.pres-session-chip').forEach(function(el, i){
+    el.classList.toggle('active', i === sIdx);
+  });
+}
+
 function updatePresenterView(idx) {
   presIdx = idx;
-  document.getElementById('presenter-counter').textContent = (idx+1) + ' / ' + SLIDE_IDS.length;
   document.querySelectorAll('.pres-thumb').forEach(function(el, i){ el.classList.toggle('active', i === idx); });
   document.getElementById('pres-prev-btn').disabled = idx <= 0;
   document.getElementById('pres-next-btn').disabled = idx >= SLIDE_IDS.length - 1;
+
+  // 행사 안내 선택 시 세션 목록 표시
+  var sessionsEl = document.getElementById('presenter-sessions');
+  if (idx === 1 && sessionPresArr.length > 0) {
+    var realSessions = sessionPresArr.filter(function(p){ return p.type !== '쉬는 시간'; });
+    sessionsEl.innerHTML = realSessions.map(function(p, i){
+      return '<div class="pres-session-chip" onclick="presGotoSession('+i+')" title="'+p.title+'">'+
+        '<span style="font-size:10px;color:rgba(255,255,255,0.35);margin-right:5px;">'+String(i+1).padStart(2,'0')+'</span>'+
+        p.title+'</div>';
+    }).join('');
+    sessionsEl.classList.add('visible');
+    document.getElementById('presenter-counter').textContent = '행사 안내';
+  } else {
+    sessionsEl.innerHTML = '';
+    sessionsEl.classList.remove('visible');
+    document.getElementById('presenter-counter').textContent = (idx+1) + ' / ' + SLIDE_IDS.length;
+  }
 }
 
 // 팝업(슬라이드쇼) 모드 자동 진입
 var isSlideshowPopup = new URLSearchParams(location.search).get('slideshow') === '1';
 if (isSlideshowPopup) {
-  // 발표자 패널 숨기기, 발표자 버튼 숨기기
   document.addEventListener('DOMContentLoaded', function() {
     var g = document.getElementById('slide-btn-group');
     if (g) g.style.display = 'none';
@@ -2212,9 +2307,12 @@ if (isSlideshowPopup) {
     if (po) po.style.display = 'none';
     enterSlideMode();
   });
-  // 메인 창에서 오는 goto 명령 수신
+  // 메인 창에서 오는 명령 수신
   slideChannel.onmessage = function(e) {
-    if (e.data && e.data.cmd === 'goto') goToSlide(e.data.idx);
+    if (!e.data) return;
+    if (e.data.cmd === 'goto') goToSlide(e.data.idx);
+    if (e.data.cmd === 'session') openSessionDetail(e.data.idx);
+    if (e.data.cmd === 'session-close') closeSessionDetail();
   };
 }
 
