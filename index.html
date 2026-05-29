@@ -1065,6 +1065,7 @@ const EXCLUDED_TEAMS = ['품질관리팀','제품기술1팀','제품기술2팀',
 const AI_EXTRA_EXCLUDE = ['김태은','우인환'];
 const STATUS_OPTIONS = [
   { value: '',         label: '—',       color: 'var(--c1)', text: 'var(--c3)' },
+  { value: '경험',     label: '경험',     color: '#bbf7d0',   text: '#166534' },
   { value: '운영자',   label: '운영자',   color: '#dbeafe',   text: '#1e40af' },
   { value: '바쁜사람', label: '바쁜사람', color: '#fef3c7',   text: '#92400e' },
   { value: '휴직',     label: '휴직',     color: '#f3f4f6',   text: '#6b7280' },
@@ -1769,10 +1770,21 @@ function renderAdminPeople(){
 
   // 미경험자
   var nohost = anbang.filter(function(p){ return !hasHost(p.name) && !['팀장','총괄팀장','반장','조장'].includes(p.title); });
-  var nohost_normal   = nohost.filter(function(p){return !p.status;});
-  var nohost_excluded = nohost.filter(function(p){return  p.status;});
-  document.getElementById('admin-people-nohost-body').innerHTML = nohost_normal.length ? nohost_normal.map(function(p){
-    return '<tr><td style="font-weight:500;color:var(--c5);">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c2);font-size:12px;">'+(p.title||'—')+'</td><td style="max-width:140px;">'+presTagsHtml(p.name,'실무')+'</td><td style="max-width:140px;">'+presTagsHtml(p.name,'ai')+'</td><td style="white-space:nowrap;">'+statusSelect(p.id,p.status||'')+'</td></tr>';
+  var nohost_exp      = nohost.filter(function(p){ return p.status === '경험'; });           // 경험 → 맨 위
+  var nohost_normal   = nohost.filter(function(p){ return !p.status; });                      // 상태 없음 → 일반
+  var nohost_excluded = nohost.filter(function(p){ return p.status && p.status !== '경험'; });// 다른 상태 → 하단
+  var nohost_main = nohost_exp.concat(nohost_normal); // 경험자 먼저
+  document.getElementById('admin-people-nohost-body').innerHTML = nohost_main.length ? nohost_main.map(function(p){
+    var isExp = p.status === '경험';
+    var rowStyle = isExp ? 'background:#f0fdf4;' : '';
+    return '<tr style="'+rowStyle+'">'
+      +'<td style="font-weight:500;color:var(--c5);">'+(isExp?'<span style="font-size:10px;margin-right:4px;">✓</span>':'')+p.name+'</td>'
+      +'<td style="color:var(--c3);">'+p.team+'</td>'
+      +'<td style="color:var(--c2);font-size:12px;">'+(p.title||'—')+'</td>'
+      +'<td style="max-width:140px;">'+presTagsHtml(p.name,'실무')+'</td>'
+      +'<td style="max-width:140px;">'+presTagsHtml(p.name,'ai')+'</td>'
+      +'<td style="white-space:nowrap;">'+statusSelect(p.id,p.status||'')+'</td>'
+      +'</tr>';
   }).join('') : '<tr><td colspan="6" style="color:var(--c2);padding:16px;">모두 경험했어요 🎉</td></tr>';
 
   var excSection = document.getElementById('admin-people-excluded-section');
@@ -1983,13 +1995,14 @@ function editPerson(id){
 }
 
 async function saveStatus(personId, status){
-  await sb.from('anbang_people').update({status: status||null}).eq('id',personId);
+  var res = await sb.from('anbang_people').update({status: status||null}).eq('id', personId);
+  if(res.error){ alert('저장 실패: '+res.error.message); return; }
   await loadAll();
+  var tab = currentPeopleTab;
   renderAdminPeople();
-  if(currentPeopleTab==='anbang'){
-    document.getElementById('people-body-all').style.display='none';
-    document.getElementById('people-body-anbang').style.display='';
-  }
+  // 탭 상태 복원
+  document.getElementById('people-body-all').style.display    = tab==='all'    ? '' : 'none';
+  document.getElementById('people-body-anbang').style.display = tab==='anbang' ? '' : 'none';
 }
 
 async function deleteRow(table,id){
