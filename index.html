@@ -1154,7 +1154,7 @@ function getHostNamesWithTeam(month){
 function presTagsHtml(name, typeFilter){
   var items = cache.presentations.filter(function(pr){
     var match = pr.presenter.split(',').map(function(n){return n.trim();}).indexOf(name) >= 0;
-    var typeMatch = typeFilter==='ai' ? pr.type==='AI CAN DO' : pr.type!=='AI CAN DO';
+    var typeMatch = typeFilter==='ai' ? pr.type==='AI CAN DO' : pr.type==='실무공유';
     return match && typeMatch;
   }).sort(function(a,b){return b.event_month.localeCompare(a.event_month);});
   if(!items.length) return '<span style="color:var(--c2);font-size:12px;">—</span>';
@@ -1760,25 +1760,25 @@ function renderAdminPeople(){
     return '<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c3);font-size:12px;">'+(p.title||'—')+'</td><td style="color:var(--c3);font-size:12px;">'+(p.email||'—')+'</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" style="margin-right:4px;" onclick="editPerson(\''+p.id+'\')">수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_people\',\''+p.id+'\')">삭제</button></td></tr>';
   }).join('');
 
-  // 앉방데이 참가 인원 (경험자)
-  var experienced = anbang.filter(function(p){return hasHost(p.name);});
+  // 앉방데이 참가 인원 (경험자: 실제 앉방마님 이력 OR 경험 상태)
+  var experienced = anbang.filter(function(p){ return hasHost(p.name) || p.status === '경험'; });
   document.getElementById('admin-people-anbang-body').innerHTML = experienced.length ? experienced.map(function(p){
     var hostMonths=cache.hosts.filter(function(h){return h.name===p.name;}).sort(function(a,b){return b.event_month.localeCompare(a.event_month);});
-    var hostHtml=hostMonths.map(function(m){return '<span class="tag" style="font-size:10px;margin-right:2px;">'+fmtMonth(m.event_month)+'</span>';}).join('');
+    var hostHtml=hostMonths.length
+      ? hostMonths.map(function(m){return '<span class="tag" style="font-size:10px;margin-right:2px;">'+fmtMonth(m.event_month)+'</span>';}).join('')
+      : '<span style="font-size:11px;color:var(--c2);">경험 (수동 설정)</span>';
     return '<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c3);font-size:12px;">'+(p.title||'—')+'</td><td style="max-width:160px;">'+hostHtml+'</td><td style="max-width:160px;">'+presTagsHtml(p.name,'실무')+'</td><td style="max-width:160px;">'+presTagsHtml(p.name,'ai')+'</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" style="margin-right:4px;" onclick="editPerson(\''+p.id+'\')">수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_people\',\''+p.id+'\')">삭제</button></td></tr>';
   }).join('') : '<tr><td colspan="7" style="color:var(--c2);padding:16px;">없음</td></tr>';
 
-  // 미경험자
-  var nohost = anbang.filter(function(p){ return !hasHost(p.name) && !['팀장','총괄팀장','반장','조장'].includes(p.title); });
-  var nohost_exp      = nohost.filter(function(p){ return p.status === '경험'; });           // 경험 → 맨 위
-  var nohost_normal   = nohost.filter(function(p){ return !p.status; });                      // 상태 없음 → 일반
-  var nohost_excluded = nohost.filter(function(p){ return p.status && p.status !== '경험'; });// 다른 상태 → 하단
-  var nohost_main = nohost_exp.concat(nohost_normal); // 경험자 먼저
-  document.getElementById('admin-people-nohost-body').innerHTML = nohost_main.length ? nohost_main.map(function(p){
-    var isExp = p.status === '경험';
-    var rowStyle = isExp ? 'background:#f0fdf4;' : '';
-    return '<tr style="'+rowStyle+'">'
-      +'<td style="font-weight:500;color:var(--c5);">'+(isExp?'<span style="font-size:10px;margin-right:4px;">✓</span>':'')+p.name+'</td>'
+  // 미경험자 (경험 상태이거나 이력 있는 사람 제외)
+  var nohost = anbang.filter(function(p){
+    return !hasHost(p.name) && p.status !== '경험' && !['팀장','총괄팀장','반장','조장'].includes(p.title);
+  });
+  var nohost_normal   = nohost.filter(function(p){ return !p.status; });
+  var nohost_excluded = nohost.filter(function(p){ return p.status; });
+  document.getElementById('admin-people-nohost-body').innerHTML = nohost_normal.length ? nohost_normal.map(function(p){
+    return '<tr>'
+      +'<td style="font-weight:500;color:var(--c5);">'+p.name+'</td>'
       +'<td style="color:var(--c3);">'+p.team+'</td>'
       +'<td style="color:var(--c2);font-size:12px;">'+(p.title||'—')+'</td>'
       +'<td style="max-width:140px;">'+presTagsHtml(p.name,'실무')+'</td>'
