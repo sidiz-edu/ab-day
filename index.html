@@ -929,6 +929,7 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
                 <th>앉방마님</th>
                 <th>실무 발표</th>
                 <th>AI CAN DO</th>
+                <th style="text-align:center;">합계</th>
                 <th></th>
               </tr></thead>
               <tbody id="admin-people-anbang-body"><tr><td colspan="7" class="loading">불러오는 중...</td></tr></tbody>
@@ -938,8 +939,8 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
           <div style="font-size:12px;font-weight:600;color:var(--c2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">앉방마님 미경험</div>
           <div class="card" style="overflow:hidden;margin-bottom:20px;">
             <table>
-              <thead><tr><th>이름</th><th>팀</th><th>직함</th><th>실무 발표</th><th>AI CAN DO</th><th>상태</th></tr></thead>
-              <tbody id="admin-people-nohost-body"><tr><td colspan="6" class="loading">불러오는 중...</td></tr></tbody>
+              <thead><tr><th>이름</th><th>팀</th><th>직함</th><th>실무 발표</th><th>AI CAN DO</th><th style="text-align:center;">합계</th><th>상태</th></tr></thead>
+              <tbody id="admin-people-nohost-body"><tr><td colspan="7" class="loading">불러오는 중...</td></tr></tbody>
             </table>
           </div>
           <div id="admin-people-excluded-section" style="display:none;">
@@ -1149,6 +1150,13 @@ function getHostNamesWithTeam(month){
     var team = info ? '<span style="font-size:12px;color:rgba(255,255,255,0.55);margin-left:3px;">'+info.team+'</span>' : '';
     return h.name+team;
   }).join('<span style="color:rgba(255,255,255,0.3);margin:0 6px;">·</span>');
+}
+
+function presCount(name){
+  return cache.presentations.filter(function(pr){
+    return pr.presenter.split(',').map(function(n){return n.trim();}).indexOf(name) >= 0
+      && (pr.type === '실무공유' || pr.type === 'AI CAN DO');
+  }).length;
 }
 
 function presTagsHtml(name, typeFilter){
@@ -1767,7 +1775,11 @@ function renderAdminPeople(){
     var hostHtml=hostMonths.length
       ? hostMonths.map(function(m){return '<span class="tag" style="font-size:10px;margin-right:2px;">'+fmtMonth(m.event_month)+'</span>';}).join('')
       : '<span style="font-size:11px;color:var(--c2);">경험 (수동 설정)</span>';
-    return '<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c3);font-size:12px;">'+(p.title||'—')+'</td><td style="max-width:160px;">'+hostHtml+'</td><td style="max-width:160px;">'+presTagsHtml(p.name,'실무')+'</td><td style="max-width:160px;">'+presTagsHtml(p.name,'ai')+'</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" style="margin-right:4px;" onclick="editPerson(\''+p.id+'\')">수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_people\',\''+p.id+'\')">삭제</button></td></tr>';
+    var total = presCount(p.name);
+    var totalHtml = total > 0
+      ? '<span style="font-size:13px;font-weight:700;color:var(--c4);">'+total+'</span>'
+      : '<span style="color:var(--c2);font-size:12px;">—</span>';
+    return '<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--c3);">'+p.team+'</td><td style="color:var(--c3);font-size:12px;">'+(p.title||'—')+'</td><td style="max-width:160px;">'+hostHtml+'</td><td style="max-width:160px;">'+presTagsHtml(p.name,'실무')+'</td><td style="max-width:160px;">'+presTagsHtml(p.name,'ai')+'</td><td style="text-align:center;">'+totalHtml+'</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" style="margin-right:4px;" onclick="editPerson(\''+p.id+'\')">수정</button><button class="btn btn-danger btn-sm" onclick="deleteRow(\'anbang_people\',\''+p.id+'\')">삭제</button></td></tr>';
   }).join('') : '<tr><td colspan="7" style="color:var(--c2);padding:16px;">없음</td></tr>';
 
   // 미경험자 (경험 상태이거나 이력 있는 사람 제외)
@@ -1777,15 +1789,20 @@ function renderAdminPeople(){
   var nohost_normal   = nohost.filter(function(p){ return !p.status; });
   var nohost_excluded = nohost.filter(function(p){ return p.status; });
   document.getElementById('admin-people-nohost-body').innerHTML = nohost_normal.length ? nohost_normal.map(function(p){
+    var total = presCount(p.name);
+    var totalHtml = total > 0
+      ? '<span style="font-size:13px;font-weight:700;color:var(--c4);">'+total+'</span>'
+      : '<span style="color:var(--c2);font-size:12px;">—</span>';
     return '<tr>'
       +'<td style="font-weight:500;color:var(--c5);">'+p.name+'</td>'
       +'<td style="color:var(--c3);">'+p.team+'</td>'
       +'<td style="color:var(--c2);font-size:12px;">'+(p.title||'—')+'</td>'
       +'<td style="max-width:140px;">'+presTagsHtml(p.name,'실무')+'</td>'
       +'<td style="max-width:140px;">'+presTagsHtml(p.name,'ai')+'</td>'
+      +'<td style="text-align:center;">'+totalHtml+'</td>'
       +'<td style="white-space:nowrap;">'+statusSelect(p.id,p.status||'')+'</td>'
       +'</tr>';
-  }).join('') : '<tr><td colspan="6" style="color:var(--c2);padding:16px;">모두 경험했어요 🎉</td></tr>';
+  }).join('') : '<tr><td colspan="7" style="color:var(--c2);padding:16px;">모두 경험했어요 🎉</td></tr>';
 
   var excSection = document.getElementById('admin-people-excluded-section');
   if(nohost_excluded.length){
