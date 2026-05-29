@@ -693,9 +693,15 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
               <span style="font-size:11px;font-weight:700;color:var(--c2);min-width:14px;padding-top:1px;">2</span>
               <span>드라이브 접속 후 해당 월 폴더 선택</span>
             </div>
-            <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--c3);">
-              <span style="font-size:11px;font-weight:700;color:var(--c2);min-width:14px;padding-top:1px;">3</span>
-              <span>파일명 확인 후 업로드</span>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--c3);">
+                <span style="font-size:11px;font-weight:700;color:var(--c2);min-width:14px;padding-top:1px;">3</span>
+                <span>파일명 확인 후 업로드</span>
+              </div>
+              <a id="drive-link-btn" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--c4);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:opacity 0.15s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                드라이브 바로가기
+              </a>
             </div>
           </div>
           <div style="background:linear-gradient(135deg,#0d1b3e,#1a3070);border-radius:12px;padding:18px 20px;">
@@ -703,16 +709,13 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
             <div style="font-family:'Courier New',monospace;font-size:clamp(15px,2vw,22px);font-weight:700;color:#fff;letter-spacing:0.04em;background:rgba(255,255,255,0.08);border-radius:8px;padding:12px 16px;margin-bottom:12px;word-break:break-all;">
               TYPE_이름_제목
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);">TYPE :</span>
               <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:#dbeafe;color:#1e40af;">실무발표</span>
               <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:#fce7f3;color:#9d174d;">AI CAN DO</span>
               <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:#fef3c7;color:#78350f;">KGI발표</span>
             </div>
           </div>
-          <a id="drive-link-btn" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:var(--c4);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;width:fit-content;transition:opacity 0.15s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            드라이브 바로가기
-          </a>
         </div>
       </div>
     </div>
