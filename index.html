@@ -1989,10 +1989,19 @@ function refreshHostPeopleSelect(){
   var existing=cache.hosts.filter(function(h){return h.event_month===month;}).map(function(h){return h.name;});
   var container=document.getElementById('hm-people-checkboxes');
   if(!cache.people.length){ container.innerHTML='<div style="color:var(--c2);font-size:13px;">인물-팀 관리에서 먼저 인물을 등록해주세요</div>'; return; }
-  var sorted=cache.people.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko');});
-  container.innerHTML=sorted.map(function(p){
-    return '<label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:13px;color:var(--c5);"><input type="checkbox" value="'+p.name+'"'+(existing.includes(p.name)?' checked':'')+' style="width:14px;height:14px;accent-color:var(--c4);"/><span>'+p.name+'</span><span style="font-size:11px;color:var(--c2);">'+p.team+(p.title?' · '+p.title:'')+'</span></label>';
-  }).join('');
+  // 제외: 팀장급 직함 + 참여 어려운 인원(경험 외 status)
+  var EXCLUDED_TITLES = ['팀장','총괄팀장','반장','조장','대표','CEO','부대표','이사'];
+  var filtered = cache.people.filter(function(p){
+    if(EXCLUDED_TITLES.includes(p.title)) return false;
+    if(p.status && p.status !== '경험') return false;
+    return true;
+  });
+  var sorted = filtered.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko');});
+  container.innerHTML = sorted.length
+    ? sorted.map(function(p){
+        return '<label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:13px;color:var(--c5);"><input type="checkbox" value="'+p.name+'"'+(existing.includes(p.name)?' checked':'')+' style="width:14px;height:14px;accent-color:var(--c4);"/><span>'+p.name+'</span><span style="font-size:11px;color:var(--c2);">'+p.team+(p.title?' · '+p.title:'')+'</span></label>';
+      }).join('')
+    : '<div style="color:var(--c2);font-size:13px;">등록된 인원이 없습니다</div>';
 }
 
 function openEditHostModal(month){
