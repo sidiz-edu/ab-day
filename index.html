@@ -1989,11 +1989,13 @@ function refreshHostPeopleSelect(){
   var existing=cache.hosts.filter(function(h){return h.event_month===month;}).map(function(h){return h.name;});
   var container=document.getElementById('hm-people-checkboxes');
   if(!cache.people.length){ container.innerHTML='<div style="color:var(--c2);font-size:13px;">인물-팀 관리에서 먼저 인물을 등록해주세요</div>'; return; }
-  // 제외: 팀장급 직함 + 참여 어려운 인원(경험 외 status)
+  // 제외: 팀장급 직함 + 참여 어려운 인원 + 이미 앉방마님 경험자
   var EXCLUDED_TITLES = ['팀장','총괄팀장','반장','조장','대표','CEO','부대표','이사'];
+  var allHostNames = cache.hosts.map(function(h){ return h.name; });
   var filtered = cache.people.filter(function(p){
     if(EXCLUDED_TITLES.includes(p.title)) return false;
     if(p.status && p.status !== '경험') return false;
+    if(allHostNames.includes(p.name) && !existing.includes(p.name)) return false; // 이미 경험한 사람 제외 (현재 월 선택된 사람은 유지)
     return true;
   });
   var sorted = filtered.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko');});
