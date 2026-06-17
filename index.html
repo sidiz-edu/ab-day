@@ -1112,7 +1112,9 @@ const sb = createClient(
   'https://dvlrzbckneucpvlacdll.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bHJ6YmNrbmV1Y3B2bGFjZGxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5ODE0OTUsImV4cCI6MjA5MDU1NzQ5NX0.ofzGfyjndiT-FAIcG9TCFtUSXsagTBYOnhsP91vx0sE'
 );
-const ADMIN_PW = '1234';
+// SHA-256('1234') — 평문 대신 해시 비교
+const ADMIN_PW_HASH = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4';
+async function _sha256(str){ var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join(''); }
 const EXCLUDED_TEAMS = ['품질관리팀','제품기술1팀','제품기술2팀','제품개발팀'];
 const AI_EXTRA_EXCLUDE = ['김태은','우인환'];
 const STATUS_OPTIONS = [
@@ -1566,9 +1568,10 @@ function closeAdmin(){
   document.body.style.overflow = '';
 }
 
-function checkPw(){
+async function checkPw(){
   var pw = document.getElementById('admin-pw').value;
-  if(pw===ADMIN_PW){
+  var hash = await _sha256(pw);
+  if(hash === ADMIN_PW_HASH){
     adminUnlocked = true;
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
