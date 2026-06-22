@@ -1334,7 +1334,10 @@ setTimeout(updateBg, 100);
 
 // ── 스크롤 네비 ──
 function scrollToSec(id){
-  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  var el=document.getElementById(id);
+  if(!el)return;
+  var top=el.getBoundingClientRect().top+window.scrollY-64;
+  window.scrollTo({top:top,behavior:'smooth'});
   history.replaceState(null,'','#'+id);
 }
 function navGo(e,id){
