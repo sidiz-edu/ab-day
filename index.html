@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
@@ -39,7 +39,11 @@ html{scroll-behavior:smooth;}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:transparent;color:var(--w);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 
 /* ── 네비 ── */
-#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;transition:background 0.3s;background:rgba(30,37,64,0.0);}
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 32px;height:64px;transition:background 0.3s;background:rgba(30,37,64,0.0);}
+.nav-links{display:flex;align-items:center;gap:36px;list-style:none;}
+.nav-links li{display:block;}
+.nav-links li a{display:block;font-size:13px;font-weight:600;color:#ffffff !important;letter-spacing:0.5px;text-decoration:none;white-space:nowrap;line-height:1;}
+.nav-menu-btn{justify-self:end;}
 #nav.scrolled{background:rgba(0,0,0,0.15);backdrop-filter:blur(16px);border-bottom:1px solid rgba(128,128,128,0.15);}
 .nav-logo{font-size:14px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;cursor:pointer;user-select:none;-webkit-user-select:none;font-family:var(--font-en);}
 .nav-menu-btn{display:flex;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:transparent;border:none;}
@@ -507,6 +511,11 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
 <!-- ── 네비게이션 ── -->
 <nav id="nav">
   <div class="nav-logo" id="nav-logo">시디즈 앉방데이</div>
+  <ul class="nav-links" style="display:flex;align-items:center;gap:36px;list-style:none;">
+    <li style="display:block;"><a href="#sec-event" onclick="navGo(event,'sec-event')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">행사안내</a></li>
+    <li style="display:block;"><a href="#sec-story" onclick="navGo(event,'sec-story')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">지난 앉방데이</a></li>
+    <li style="display:block;"><a href="#sec-presenter" onclick="navGo(event,'sec-presenter')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">발표자가이드</a></li>
+  </ul>
   <button class="nav-menu-btn" onclick="openMenu()" aria-label="메뉴 열기">
     <span></span><span></span>
   </button>
@@ -1326,7 +1335,16 @@ setTimeout(updateBg, 100);
 // ── 스크롤 네비 ──
 function scrollToSec(id){
   document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  history.replaceState(null,'','#'+id);
 }
+function navGo(e,id){
+  e.preventDefault();
+  scrollToSec(id);
+}
+window.addEventListener('load',function(){
+  var h=location.hash.slice(1);
+  if(h&&document.getElementById(h)) setTimeout(function(){ scrollToSec(h); },300);
+});
 
 // ── 메뉴 ──
 function openMenu(){ document.getElementById('menu-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
@@ -2678,3 +2696,4 @@ function downloadPeopleExcel(){
 </div>
 </body>
 </html>
+
