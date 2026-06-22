@@ -36,6 +36,7 @@
   --c0:#f0f1f5;--c1:#e8eaf0;--c2:#7a8499;--c3:#3d4560;--c4:#1e2540;--c5:#111827;
 }
 html{scroll-behavior:smooth;}
+#sec-event,#sec-story,#sec-presenter{scroll-margin-top:64px;}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:transparent;color:var(--w);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 
 /* ── 네비 ── */
@@ -512,9 +513,9 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
 <nav id="nav">
   <div class="nav-logo" id="nav-logo">시디즈 앉방데이</div>
   <ul class="nav-links" style="display:flex;align-items:center;gap:36px;list-style:none;">
-    <li style="display:block;"><a href="#sec-event" onclick="navGo(event,'sec-event')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">행사안내</a></li>
-    <li style="display:block;"><a href="#sec-story" onclick="navGo(event,'sec-story')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">지난 앉방데이</a></li>
-    <li style="display:block;"><a href="#sec-presenter" onclick="navGo(event,'sec-presenter')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">발표자가이드</a></li>
+    <li style="display:block;"><a onclick="scrollToSec('sec-event')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">행사안내</a></li>
+    <li style="display:block;"><a onclick="scrollToSec('sec-story')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">지난 앉방데이</a></li>
+    <li style="display:block;"><a onclick="scrollToSec('sec-presenter')" class="nav-link" style="font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;">발표자가이드</a></li>
   </ul>
   <button class="nav-menu-btn" onclick="openMenu()" aria-label="메뉴 열기">
     <span></span><span></span>
@@ -1336,8 +1337,7 @@ setTimeout(updateBg, 100);
 function scrollToSec(id){
   var el=document.getElementById(id);
   if(!el)return;
-  var top=el.getBoundingClientRect().top+window.scrollY-64;
-  window.scrollTo({top:top,behavior:'smooth'});
+  el.scrollIntoView({behavior:'smooth',block:'start'});
   history.replaceState(null,'','#'+id);
 }
 function navGo(e,id){
