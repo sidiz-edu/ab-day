@@ -1337,8 +1337,7 @@ setTimeout(updateBg, 100);
 function scrollToSec(id){
   var el=document.getElementById(id);
   if(!el)return;
-  el.scrollIntoView({behavior:'smooth',block:'start'});
-  history.replaceState(null,'','#'+id);
+  location.replace((location.href.split('#')[0])+'#'+id);
 }
 function navGo(e,id){
   e.preventDefault();
