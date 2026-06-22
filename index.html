@@ -1354,16 +1354,17 @@ function openMenu(){ document.getElementById('menu-overlay').classList.add('open
 function closeMenu(){ document.getElementById('menu-overlay').classList.remove('open'); document.body.style.overflow=''; }
 function menuGo(sec){ closeMenu(); setTimeout(function(){ scrollToSec(sec); }, 300); }
 
-// 로고 길게 누르기 → 관리자
+// 로고 클릭 → 홈, 길게 누르기 → 관리자
 (function(){
   var logo = document.getElementById('nav-logo');
-  var timer;
-  logo.addEventListener('mousedown', function(){ timer=setTimeout(function(){ openAdmin(); },800); });
+  var timer, longPressed=false;
+  logo.addEventListener('mousedown', function(){ longPressed=false; timer=setTimeout(function(){ longPressed=true; openAdmin(); },800); });
   logo.addEventListener('mouseup', function(){ clearTimeout(timer); });
   logo.addEventListener('mouseleave', function(){ clearTimeout(timer); });
-  logo.addEventListener('touchstart', function(){ timer=setTimeout(function(){ openAdmin(); },800); },{passive:true});
+  logo.addEventListener('touchstart', function(){ longPressed=false; timer=setTimeout(function(){ longPressed=true; openAdmin(); },800); },{passive:true});
   logo.addEventListener('touchend', function(){ clearTimeout(timer); });
   logo.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  logo.addEventListener('click', function(){ if(!longPressed) window.scrollTo({top:0,behavior:'smooth'}); });
 })();
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeMenu(); closeAdmin(); } });
