@@ -1023,7 +1023,19 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
   <div class="modal">
     <div class="modal-title" id="event-modal-title">행사 추가</div>
     <input type="hidden" id="em-id"/>
-    <div class="form-group"><label class="form-label">월 (예: 2025.05)</label><input class="form-input" id="em-month" placeholder="2025.05"/></div>
+    <div class="form-group"><label class="form-label">년도 / 월</label>
+      <div style="display:flex;gap:8px;">
+        <select class="form-select" id="em-year" style="flex:1;">
+          <option>2025</option><option>2026</option><option>2027</option><option>2028</option>
+        </select>
+        <select class="form-select" id="em-month-num" style="flex:1;">
+          <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+          <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+        </select>
+      </div>
+    </div>
     <div class="form-group"><label class="form-label">날짜 (예: 5월 30일 (금))</label><input class="form-input" id="em-date" placeholder="5월 30일 (금)"/></div>
     <div class="form-group"><label class="form-label">시간</label><input class="form-input" id="em-time" placeholder="15:00 – 17:30" value="15:00 – 17:30"/></div>
     <div class="form-group"><label class="form-label">장소</label><input class="form-input" id="em-location" placeholder="본사 4층 4C" value="본사 4층 4C"/></div>
@@ -2135,19 +2147,23 @@ function openEditHostModal(month){
 // ── CRUD ──
 async function saveEvent(){
   var id=document.getElementById('em-id').value;
-  var data={ month:document.getElementById('em-month').value.trim(), date:document.getElementById('em-date').value.trim(), time_range:document.getElementById('em-time').value.trim(), location:document.getElementById('em-location').value.trim(), host_team:document.getElementById('em-host-team').value.trim() };
-  if(!data.month) return alert('월을 입력하세요');
+  var month=document.getElementById('em-year').value+'.'+document.getElementById('em-month-num').value;
+  var data={ month:month, date:document.getElementById('em-date').value.trim(), time_range:document.getElementById('em-time').value.trim(), location:document.getElementById('em-location').value.trim(), host_team:document.getElementById('em-host-team').value.trim() };
   if(id) await sb.from('anbang_events').update(data).eq('id',id);
   else   await sb.from('anbang_events').insert(data);
   closeModal('event-modal');
-  ['em-id','em-month','em-date','em-host-team'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['em-id','em-date','em-host-team'].forEach(function(i){ document.getElementById(i).value=''; });
   await loadAdminData();
 }
 
 function editEvent(id){
   var e=cache.events.find(function(x){return x.id===id;});
   if(!e) return;
-  document.getElementById('em-id').value=e.id; document.getElementById('em-month').value=e.month; document.getElementById('em-date').value=e.date||''; document.getElementById('em-time').value=e.time_range||''; document.getElementById('em-location').value=e.location||''; document.getElementById('em-host-team').value=e.host_team||'';
+  var parts=(e.month||'').split('.');
+  document.getElementById('em-id').value=e.id;
+  document.getElementById('em-year').value=parts[0]||'2026';
+  document.getElementById('em-month-num').value=(parts[1]||'01').trim().padStart(2,'0');
+  document.getElementById('em-date').value=e.date||''; document.getElementById('em-time').value=e.time_range||''; document.getElementById('em-location').value=e.location||''; document.getElementById('em-host-team').value=e.host_team||'';
   document.getElementById('event-modal-title').textContent='행사 수정';
   openModal('event-modal');
 }
