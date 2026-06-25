@@ -1046,7 +1046,6 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
     <div id="pm-detail-fields">
       <div class="form-group"><label class="form-label">제목</label><input class="form-input" id="pm-title" placeholder="제목"/></div>
       <div class="form-group"><label class="form-label">발표자 (복수 시 콤마 구분)</label><input class="form-input" id="pm-presenter" placeholder="홍길동, 김철수"/></div>
-      <div class="form-group"><label class="form-label">EP 아이디 (사진용, 선택)</label><input class="form-input" id="pm-ep-id" placeholder="danmi"/></div>
     </div>
     <div class="form-group"><label class="form-label">시간 (분)</label><input class="form-input" id="pm-duration" type="number" placeholder="15"/></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
@@ -1176,12 +1175,15 @@ function typePillHtml(type){
   return '<span style="'+s+'padding:4px 11px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;display:inline-block;">'+type+'</span>';
 }
 
-function epPhotoUrl(epId){
-  if(!epId) return '';
+function epPhotoUrlFromName(name){
+  var info = peopleMap[name ? name.trim() : ''];
+  if(!info || !info.email) return '';
+  var epId = info.email.split('@')[0];
   return 'https://ep.fursys.com/_upload/user/'+epId+'_130x130.png';
 }
-function epPhotoHtml(epId, size){
-  var url = epPhotoUrl(epId);
+function epPhotoHtml(nameStr, size){
+  var firstName = (nameStr||'').split(',')[0].trim();
+  var url = epPhotoUrlFromName(firstName);
   if(!url) return '';
   size = size||36;
   return '<img src="'+url+'" style="width:'+size+'px;height:'+size+'px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">';
@@ -1269,7 +1271,7 @@ async function loadAll(){
   cache.settings      = {};
   (results[4].data||[]).forEach(function(s){ cache.settings[s.key]=s.value; });
   peopleMap = {};
-  cache.people.forEach(function(p){ peopleMap[p.name]={team:p.team,title:p.title,status:p.status}; });
+  cache.people.forEach(function(p){ peopleMap[p.name]={team:p.team,title:p.title,status:p.status,email:p.email}; });
   var driveBtn = document.getElementById('drive-link-btn');
   if(driveBtn && cache.settings.drive_url) driveBtn.href = cache.settings.drive_url;
   // 발표 유형 안내 렌더 (DB 값 우선)
@@ -1429,7 +1431,7 @@ async function renderEvent(){
       num++;
       var h = '<div class="pres-item" style="cursor:pointer;" onclick="openSessionDetail('+idx+')">';
       h += '<span class="pres-num">'+String(num).padStart(2,'0')+'</span>';
-      h += epPhotoHtml(p.presenter_ep_id, 36);
+      h += epPhotoHtml(p.presenter, 36);
       h += '<div class="pres-info"><div style="display:flex;align-items:center;gap:8px;"><div class="pres-title">'+p.title+'</div>';
       if(p.type==='채산실적공유') h += '<a href="https://sidiz-anbang-day-dashboard.sidiz.hub.fursys.com/" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--c4);text-decoration:none;white-space:nowrap;border:1px solid var(--c4);border-radius:5px;padding:2px 8px;flex-shrink:0;">바로가기 →</a>';
       h += '</div><div class="pres-presenter">'+withTeam(p.presenter)+'</div></div>';
@@ -2143,7 +2145,7 @@ async function savePresentation(){
   if(id) await sb.from('anbang_presentations').update(data).eq('id',id);
   else   await sb.from('anbang_presentations').insert(data);
   closeModal('pres-modal');
-  ['pm-id','pm-title','pm-presenter','pm-ep-id','pm-duration'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['pm-id','pm-title','pm-presenter','pm-duration'].forEach(function(i){ document.getElementById(i).value=''; });
   await loadAdminData();
   if(selectedEventMonth) selectEvent(selectedEventMonth);
 }
@@ -2580,7 +2582,7 @@ function renderSessionModal(animDir) {
   document.getElementById('sm-seq').textContent = String(displayNum).padStart(2,'0') + ' / ' + sessionPresArr.filter(function(x){return x.type!=='쉬는 시간';}).length;
   // 타이틀 & 발표자
   document.getElementById('sm-title').textContent = p.title;
-  var photoHtml = p.presenter_ep_id ? epPhotoHtml(p.presenter_ep_id, 52) : '';
+  var photoHtml = epPhotoHtml(p.presenter, 52);
   document.getElementById('sm-presenter').innerHTML = '<div style="display:flex;align-items:center;gap:12px;">'+photoHtml+'<span>'+withTeam(p.presenter, true)+'</span></div>';
   // 링크
   var linkWrap = document.getElementById('sm-link-wrap');
