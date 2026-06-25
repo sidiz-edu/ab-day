@@ -1046,6 +1046,7 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
     <div id="pm-detail-fields">
       <div class="form-group"><label class="form-label">제목</label><input class="form-input" id="pm-title" placeholder="제목"/></div>
       <div class="form-group"><label class="form-label">발표자 (복수 시 콤마 구분)</label><input class="form-input" id="pm-presenter" placeholder="홍길동, 김철수"/></div>
+      <div class="form-group"><label class="form-label">EP 아이디 (사진용, 선택)</label><input class="form-input" id="pm-ep-id" placeholder="danmi"/></div>
     </div>
     <div class="form-group"><label class="form-label">시간 (분)</label><input class="form-input" id="pm-duration" type="number" placeholder="15"/></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
@@ -1175,6 +1176,16 @@ function typePillHtml(type){
   return '<span style="'+s+'padding:4px 11px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;display:inline-block;">'+type+'</span>';
 }
 
+function epPhotoUrl(epId){
+  if(!epId) return '';
+  return 'https://ep.fursys.com/_upload/user/'+epId+'_130x130.png';
+}
+function epPhotoHtml(epId, size){
+  var url = epPhotoUrl(epId);
+  if(!url) return '';
+  size = size||36;
+  return '<img src="'+url+'" style="width:'+size+'px;height:'+size+'px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">';
+}
 function withTeam(nameStr, dark){
   if(!nameStr) return '';
   return nameStr.split(',').map(function(n){
@@ -1418,6 +1429,7 @@ async function renderEvent(){
       num++;
       var h = '<div class="pres-item" style="cursor:pointer;" onclick="openSessionDetail('+idx+')">';
       h += '<span class="pres-num">'+String(num).padStart(2,'0')+'</span>';
+      h += epPhotoHtml(p.presenter_ep_id, 36);
       h += '<div class="pres-info"><div style="display:flex;align-items:center;gap:8px;"><div class="pres-title">'+p.title+'</div>';
       if(p.type==='채산실적공유') h += '<a href="https://sidiz-anbang-day-dashboard.sidiz.hub.fursys.com/" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--c4);text-decoration:none;white-space:nowrap;border:1px solid var(--c4);border-radius:5px;padding:2px 8px;flex-shrink:0;">바로가기 →</a>';
       h += '</div><div class="pres-presenter">'+withTeam(p.presenter)+'</div></div>';
@@ -2126,12 +2138,12 @@ async function savePresentation(){
   var existingOrders = cache.presentations.filter(function(p){return p.event_month===document.getElementById('pm-month').value;}).map(function(p){return p.order_num||0;});
   var nextOrder = existingOrders.length ? Math.max.apply(null,existingOrders)+1 : 0;
   var currentOrder = id ? (cache.presentations.find(function(p){return p.id===id;})||{}).order_num : nextOrder;
-  var data={ event_month:document.getElementById('pm-month').value, title:isBreak?'쉬는 시간':document.getElementById('pm-title').value.trim(), presenter:isBreak?'':document.getElementById('pm-presenter').value.trim(), type:type, duration_min:parseInt(document.getElementById('pm-duration').value)||null, order_num:currentOrder };
+  var data={ event_month:document.getElementById('pm-month').value, title:isBreak?'쉬는 시간':document.getElementById('pm-title').value.trim(), presenter:isBreak?'':document.getElementById('pm-presenter').value.trim(), presenter_ep_id:isBreak?'':document.getElementById('pm-ep-id').value.trim()||null, type:type, duration_min:parseInt(document.getElementById('pm-duration').value)||null, order_num:currentOrder };
   if(!isBreak && !data.title) return alert('제목을 입력하세요');
   if(id) await sb.from('anbang_presentations').update(data).eq('id',id);
   else   await sb.from('anbang_presentations').insert(data);
   closeModal('pres-modal');
-  ['pm-id','pm-title','pm-presenter','pm-duration'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['pm-id','pm-title','pm-presenter','pm-ep-id','pm-duration'].forEach(function(i){ document.getElementById(i).value=''; });
   await loadAdminData();
   if(selectedEventMonth) selectEvent(selectedEventMonth);
 }
@@ -2141,7 +2153,7 @@ function editPres(id){
   if(!p) return;
   openModal('pres-modal');
   setTimeout(function(){
-    document.getElementById('pm-id').value=p.id; document.getElementById('pm-month').value=p.event_month; document.getElementById('pm-title').value=p.title; document.getElementById('pm-presenter').value=p.presenter; document.getElementById('pm-type').value=p.type; document.getElementById('pm-duration').value=p.duration_min||'';
+    document.getElementById('pm-id').value=p.id; document.getElementById('pm-month').value=p.event_month; document.getElementById('pm-title').value=p.title; document.getElementById('pm-presenter').value=p.presenter; document.getElementById('pm-ep-id').value=p.presenter_ep_id||''; document.getElementById('pm-type').value=p.type; document.getElementById('pm-duration').value=p.duration_min||'';
     onPresTypeChange();
     document.getElementById('pres-modal-title').textContent='순서 수정';
   },50);
@@ -2568,7 +2580,8 @@ function renderSessionModal(animDir) {
   document.getElementById('sm-seq').textContent = String(displayNum).padStart(2,'0') + ' / ' + sessionPresArr.filter(function(x){return x.type!=='쉬는 시간';}).length;
   // 타이틀 & 발표자
   document.getElementById('sm-title').textContent = p.title;
-  document.getElementById('sm-presenter').innerHTML = withTeam(p.presenter, true);
+  var photoHtml = p.presenter_ep_id ? epPhotoHtml(p.presenter_ep_id, 52) : '';
+  document.getElementById('sm-presenter').innerHTML = '<div style="display:flex;align-items:center;gap:12px;">'+photoHtml+'<span>'+withTeam(p.presenter, true)+'</span></div>';
   // 링크
   var linkWrap = document.getElementById('sm-link-wrap');
   linkWrap.innerHTML = p.type === '채산실적공유'
