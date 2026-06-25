@@ -862,6 +862,7 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
         <button class="tab" style="border-radius:6px 6px 0 0;padding-bottom:12px;" onclick="switchAdminTab('presentations',this)">발표 관리</button>
         <button class="tab" style="border-radius:6px 6px 0 0;padding-bottom:12px;" onclick="switchAdminTab('hosts',this)">앉방마님 관리</button>
         <button class="tab" style="border-radius:6px 6px 0 0;padding-bottom:12px;" onclick="switchAdminTab('people',this)">인물-팀 관리</button>
+        <button class="tab" style="border-radius:6px 6px 0 0;padding-bottom:12px;" onclick="switchAdminTab('aicando-order',this)">AI CAN DO 순서</button>
         <button class="tab" style="border-radius:6px 6px 0 0;padding-bottom:12px;" onclick="switchAdminTab('settings',this)">설정</button>
       </div>
 
@@ -984,6 +985,37 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
               </table>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- AI CAN DO 순서 -->
+      <div id="admin-aicando-order" style="display:none;">
+        <div class="section-title" style="margin-bottom:16px;">AI CAN DO 발표자 순서</div>
+        <div class="card" style="max-width:360px;padding:20px 24px;">
+          <ol style="margin:0;padding-left:24px;display:flex;flex-direction:column;gap:10px;">
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">정규식</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">이아름</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">양도연</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">이혜린</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">서지원</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">윤휘성</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">최현지</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">한남희</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">김미래</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">신양수</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">이선영</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">최재원</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">조성준</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">노정빈</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">권소현</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">류재희</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">곽유진</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">유성호</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">강보라</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">이윤주</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">곽서정</li>
+            <li style="font-size:14px;color:var(--c5);font-weight:500;">이미선</li>
+          </ol>
         </div>
       </div>
 
@@ -1932,7 +1964,7 @@ function renderAdminPeople(){
 }
 
 function switchAdminTab(tab,btn){
-  ['events','presentations','hosts','people','settings'].forEach(function(t){ document.getElementById('admin-'+t).style.display='none'; });
+  ['events','presentations','hosts','people','aicando-order','settings'].forEach(function(t){ document.getElementById('admin-'+t).style.display='none'; });
   document.querySelectorAll('#admin-panel .tab').forEach(function(b){b.classList.remove('active');});
   document.getElementById('admin-'+tab).style.display='';
   btn.classList.add('active');
