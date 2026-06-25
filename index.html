@@ -990,33 +990,14 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
 
       <!-- AI CAN DO 순서 -->
       <div id="admin-aicando-order" style="display:none;">
-        <div class="section-title" style="margin-bottom:16px;">AI CAN DO 발표자 순서</div>
-        <div class="card" style="max-width:360px;padding:20px 24px;">
-          <ol style="margin:0;padding-left:24px;display:flex;flex-direction:column;gap:10px;">
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">정규식</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">이아름</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">양도연</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">이혜린</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">서지원</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">윤휘성</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">최현지</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">한남희</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">김미래</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">신양수</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">이선영</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">최재원</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">조성준</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">노정빈</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">권소현</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">류재희</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">곽유진</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">유성호</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">강보라</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">이윤주</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">곽서정</li>
-            <li style="font-size:14px;color:var(--c5);font-weight:500;">이미선</li>
-          </ol>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="section-title" style="margin-bottom:0;">AI CAN DO 발표자 순서</div>
         </div>
+        <div style="display:flex;gap:12px;max-width:400px;">
+          <input class="form-input" id="aicando-add-input" placeholder="이름 입력" style="flex:1;"/>
+          <button class="btn btn-primary btn-sm" onclick="addAicandoOrder()">+ 추가</button>
+        </div>
+        <div class="card" style="max-width:400px;margin-top:12px;padding:8px 0;" id="aicando-sortable"></div>
       </div>
 
       <!-- 설정 -->
@@ -1168,7 +1149,7 @@ const STATUS_OPTIONS = [
   { value: '퇴사예정', label: '퇴사예정', color: '#fee2e2',   text: '#991b1b' },
 ];
 
-let cache = { events:[], presentations:[], hosts:[], people:[], settings:{} };
+let cache = { events:[], presentations:[], hosts:[], people:[], settings:{}, aicandoOrder:[] };
 let peopleMap = {};
 
 const DEFAULT_GUIDE_TYPES = [
@@ -1299,6 +1280,7 @@ async function loadAll(){
     sb.from('anbang_hosts').select('*').order('order_num'),
     sb.from('anbang_people').select('*').order('name'),
     sb.from('anbang_settings').select('*'),
+    sb.from('aicando_order').select('*').order('order_num'),
   ]);
   cache.events        = results[0].data||[];
   cache.presentations = results[1].data||[];
@@ -1306,6 +1288,7 @@ async function loadAll(){
   cache.people        = results[3].data||[];
   cache.settings      = {};
   (results[4].data||[]).forEach(function(s){ cache.settings[s.key]=s.value; });
+  cache.aicandoOrder  = results[5].data||[];
   peopleMap = {};
   cache.people.forEach(function(p){ peopleMap[p.name]={team:p.team,title:p.title,status:p.status,email:p.email}; });
   var driveBtn = document.getElementById('drive-link-btn');
@@ -1968,6 +1951,59 @@ function switchAdminTab(tab,btn){
   document.querySelectorAll('#admin-panel .tab').forEach(function(b){b.classList.remove('active');});
   document.getElementById('admin-'+tab).style.display='';
   btn.classList.add('active');
+  if(tab==='aicando-order') renderAicandoOrder();
+}
+
+function renderAicandoOrder(){
+  var list = cache.aicandoOrder;
+  var container = document.getElementById('aicando-sortable');
+  container.innerHTML = list.map(function(item, i){
+    return '<div class="pres-sort-row" data-id="'+item.id+'" draggable="true" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--c1);cursor:grab;">'+
+      '<span style="color:var(--c2);font-size:16px;cursor:grab;">⠿</span>'+
+      '<span style="font-size:12px;font-weight:700;color:var(--c2);min-width:22px;">'+String(i+1).padStart(2,'0')+'</span>'+
+      epPhotoHtml(item.name, 26)+
+      '<span style="flex:1;font-size:14px;font-weight:500;color:var(--c5);">'+item.name+'</span>'+
+      '<button onclick="deleteAicandoOrder(\''+item.id+'\')" style="background:none;border:none;color:var(--c2);cursor:pointer;font-size:16px;padding:0 4px;" title="삭제">✕</button>'+
+    '</div>';
+  }).join('');
+  initAicandoSortable();
+}
+
+function initAicandoSortable(){
+  var container = document.getElementById('aicando-sortable');
+  var dragging = null;
+  container.querySelectorAll('.pres-sort-row').forEach(function(row){
+    row.addEventListener('dragstart', function(e){ dragging=row; row.style.opacity='0.4'; e.dataTransfer.effectAllowed='move'; });
+    row.addEventListener('dragend', function(){ row.style.opacity=''; dragging=null; container.querySelectorAll('.pres-sort-row').forEach(function(r){r.style.borderTop='';}); saveAicandoOrder(); });
+    row.addEventListener('dragover', function(e){ e.preventDefault(); if(row===dragging) return; container.querySelectorAll('.pres-sort-row').forEach(function(r){r.style.borderTop='';}); row.style.borderTop='2px solid var(--c4)'; var rect=row.getBoundingClientRect(); if(e.clientY<rect.top+rect.height/2) container.insertBefore(dragging,row); else container.insertBefore(dragging,row.nextSibling); });
+  });
+}
+
+async function saveAicandoOrder(){
+  var rows = document.getElementById('aicando-sortable').querySelectorAll('.pres-sort-row');
+  await Promise.all(Array.from(rows).map(function(row, idx){
+    return sb.from('aicando_order').update({order_num:idx}).eq('id',row.dataset.id);
+  }));
+  await loadAll();
+  renderAicandoOrder();
+}
+
+async function addAicandoOrder(){
+  var input = document.getElementById('aicando-add-input');
+  var name = input.value.trim();
+  if(!name) return;
+  var maxOrder = cache.aicandoOrder.length ? Math.max.apply(null, cache.aicandoOrder.map(function(x){return x.order_num;})) : -1;
+  await sb.from('aicando_order').insert({name:name, order_num:maxOrder+1});
+  input.value='';
+  await loadAll();
+  renderAicandoOrder();
+}
+
+async function deleteAicandoOrder(id){
+  if(!confirm('삭제하시겠습니까?')) return;
+  await sb.from('aicando_order').delete().eq('id',id);
+  await loadAll();
+  renderAicandoOrder();
 }
 
 // ── 모달 ──
