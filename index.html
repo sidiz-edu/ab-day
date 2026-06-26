@@ -592,6 +592,7 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
     <div id="event-pres-list" class="pres-list">
       <div class="pres-item"><span style="color:var(--w3);font-size:13px;">불러오는 중...</span></div>
     </div>
+    <div id="event-total-time" style="margin-top:12px;text-align:right;font-size:13px;color:var(--w3);"></div>
   </div>
 </section>
 
@@ -1450,7 +1451,12 @@ async function renderEvent(){
     document.getElementById('event-pres-list').innerHTML = '<div class="pres-item"><span style="color:var(--w3);font-size:13px;">등록된 발표가 없습니다</span></div>';
     return;
   }
-  sessionPresArr = pres; // 세션 디테일 모달용 배열
+  sessionPresArr = pres;
+  var totalMin = pres.reduce(function(sum, p){ return sum + (p.duration_min||0); }, 0);
+  var totalStr = totalMin >= 60
+    ? Math.floor(totalMin/60)+'시간 '+(totalMin%60 ? totalMin%60+'분' : '')
+    : totalMin+'분';
+  document.getElementById('event-total-time').textContent = '총 ' + totalStr.trim();
   document.getElementById('event-pres-list').innerHTML = (function(){
     var num = 0;
     return pres.map(function(p, idx){
