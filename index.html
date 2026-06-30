@@ -1143,14 +1143,28 @@ body.slide-mode .slide-arrow,body.slide-mode #slide-exit{cursor:pointer;}
 
 <script>
 // ── Supabase 초기화 ──
-// GitHub Pages → 기존 Supabase / 그 외(백엔드 서버) → 직접 연결
 const { createClient } = supabase;
-var _ghPages = location.hostname.endsWith('.github.io') || location.hostname === 'localhost' && false;
-var _sbUrl = _ghPages ? 'https://dvlrzbckneucpvlacdll.supabase.co' : location.origin;
-var _sbKey = _ghPages
-  ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bHJ6YmNrbmV1Y3B2bGFjZGxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5ODE0OTUsImV4cCI6MjA5MDU1NzQ5NX0.ofzGfyjndiT-FAIcG9TCFtUSXsagTBYOnhsP91vx0sE'
-  : 'local';
-const sb = createClient(_sbUrl, _sbKey, _ghPages ? {} : { db: { schema: 'app_260630_c6bq' } });
+var _isFursys = location.hostname.includes('fursys-group-hub') || location.hostname.includes('fursys.com') || location.hostname.includes('fursys.hub');
+var _isBackend = !location.hostname.endsWith('.github.io') && !_isFursys;
+var _sbUrl, _sbKey, _sbOpts;
+if (_isFursys) {
+  // fursys GitHub Pages 또는 fursys 도메인 → fursys Supabase
+  // ⬇ fursys AI팀에서 받은 anon key 입력
+  _sbUrl = 'https://flkklzekfisqdfjhcsel.supabase.co';
+  _sbKey = 'FURSYS_ANON_KEY';
+  _sbOpts = { db: { schema: 'app_260630_c6bq' } };
+} else if (_isBackend) {
+  // fursys 사내 서버 배포 → 백엔드 직접 연결
+  _sbUrl = location.origin;
+  _sbKey = 'local';
+  _sbOpts = { db: { schema: 'app_260630_c6bq' } };
+} else {
+  // sidiz-edu GitHub Pages → 기존 Supabase
+  _sbUrl = 'https://dvlrzbckneucpvlacdll.supabase.co';
+  _sbKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bHJ6YmNrbmV1Y3B2bGFjZGxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5ODE0OTUsImV4cCI6MjA5MDU1NzQ5NX0.ofzGfyjndiT-FAIcG9TCFtUSXsagTBYOnhsP91vx0sE';
+  _sbOpts = {};
+}
+const sb = createClient(_sbUrl, _sbKey, _sbOpts);
 // SHA-256('1234') — 평문 대신 해시 비교
 const ADMIN_PW_HASH = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4';
 async function _sha256(str){ var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join(''); }
